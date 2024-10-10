@@ -47,7 +47,7 @@ summary the stock and return the result to the user
 
 ### 背景追蹤門市庫存
 
-background job to track the stock of the stores
+background job to track the stock of the stores every 5 mins
 
 loop through the stores in the database
 
