@@ -8,7 +8,7 @@ from .share import USER_AGENT
 class CategoryStockItem(BaseModel):
     node_id: int = Field(alias="NodeID", description="商品分類編號")
     name: str = Field(alias="Name", description="商品分類名稱")
-    remaining_qty: int | None = Field(
+    remaining_qty: int = Field(
         alias="RemainingQty", description="該商品分類的剩餘即期品數量"
     )
 
@@ -16,11 +16,9 @@ class CategoryStockItem(BaseModel):
 class StoreStockItem(BaseModel):
     store_no: str = Field(alias="StoreNo", description="門市編號")
     store_name: str = Field(alias="StoreName", description="門市名稱")
-    distance: float | None = Field(alias="Distance", description="與用戶的距離")
+    distance: float = Field(alias="Distance", description="與用戶的距離")
     is_operate_time: bool = Field(alias="IsOperateTime", description="是否正在營運時間")
-    remaining_qty: int | None = Field(
-        alias="RemainingQty", description="剩餘即期品總數量"
-    )
+    remaining_qty: int = Field(alias="RemainingQty", description="剩餘即期品總數量")
     category_stock_items: list[CategoryStockItem] = Field(
         alias="CategoryStockItems", description="商品分類清單"
     )

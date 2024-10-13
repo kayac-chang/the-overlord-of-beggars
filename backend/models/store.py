@@ -2,7 +2,7 @@ from pydantic import BaseModel
 
 
 class Store(BaseModel):
-    id: int
+    id: str
     name: str
     address: str
     latitude: float
