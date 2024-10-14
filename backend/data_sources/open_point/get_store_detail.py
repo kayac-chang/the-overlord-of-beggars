@@ -1,7 +1,9 @@
 import aiohttp
 from pydantic import BaseModel, Field
 
-from .model import Location, Response
+from backend.models.geolocation import GeoLocation
+
+from .model import Response
 from .share import USER_AGENT
 
 
@@ -42,7 +44,7 @@ class StoreDetailResponse(BaseModel):
 async def get_store_detail(
     token: str,
     store_id: str,
-    current_location: Location = {"latitude": 0, "longitude": 0},
+    current_location: GeoLocation = {"latitude": 0, "longitude": 0},
 ) -> StoreDetailResponse:
     """
     get store detail 取得門市庫存

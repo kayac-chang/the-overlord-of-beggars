@@ -1,11 +1,13 @@
 import aiohttp
 
-from .model import Location, Response, Store
+from backend.models.geolocation import GeoLocation
+
+from .model import Response, Store
 from .share import USER_AGENT
 
 
 async def get_stores_by_geolocation(
-    token: str, current_location: Location, search_location: Location
+    token: str, current_location: GeoLocation, search_location: GeoLocation
 ) -> list[Store]:
     """
     get stores by geolocation 取得門市清單 (從經緯度)

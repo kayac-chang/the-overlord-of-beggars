@@ -1,7 +1,9 @@
 import aiohttp
 from pydantic import BaseModel, Field
 
-from .model import Location, Response
+from backend.models.geolocation import GeoLocation
+
+from .model import Response
 from .share import USER_AGENT
 
 
@@ -35,7 +37,7 @@ class NearbyStoreDetailResponse(BaseModel):
 
 
 async def get_nearby_stores_by_geolocation(
-    token: str, current_location: Location, search_location: Location
+    token: str, current_location: GeoLocation, search_location: GeoLocation
 ) -> NearbyStoreDetailResponse:
     """
     get nearby stores by geolocation 取得鄰近門市庫存清單 (從經緯度)

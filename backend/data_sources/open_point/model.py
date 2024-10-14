@@ -1,4 +1,4 @@
-from typing import Generic, TypedDict, TypeVar
+from typing import Generic, TypeVar
 
 from pydantic import BaseModel, Field
 
@@ -24,11 +24,6 @@ class Store(BaseModel):
     is_operate_time: bool = Field(alias="IsOperateTime", description="是否正在營運時間")
     has_stock: bool = Field(alias="HasStock", description="是否有即期品庫存")
     distance: float | None = Field(alias="Distance", description="與用戶的距離")
-
-
-class Location(TypedDict):
-    latitude: float
-    longitude: float
 
 
 class SubItemCategory(BaseModel):

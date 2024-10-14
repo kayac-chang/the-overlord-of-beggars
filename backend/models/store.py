@@ -7,3 +7,4 @@ class Store(BaseModel):
     address: str
     latitude: float
     longitude: float
+    distance: float | None = None
