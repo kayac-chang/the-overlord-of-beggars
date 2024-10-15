@@ -150,6 +150,8 @@ async def get_store_stock(store_id: str) -> Response[list[Stock]]:
                 Stock(
                     name=item.item_name,
                     quantity=item.remaining_qty,
+                    category_id=str(category_stock_item.node_id),
+                    category_name=category_stock_item.name,
                 )
             )
 

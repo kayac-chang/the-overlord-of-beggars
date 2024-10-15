@@ -4,7 +4,7 @@ export const NearExpiredFoodSchema = z.object({
   /** @description 品名 */
   name: z.string(),
   /** @description 品項 */
-  category: z.string(),
+  category_name: z.string(),
   /** @description 數量 */
   quantity: z.number(),
 });
