@@ -14,3 +14,7 @@ Install the dependencies
 pip install -r requirements.txt
 ```
 
+Start development server
+```sh
+fastapi dev
+```
