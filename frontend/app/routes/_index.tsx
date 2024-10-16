@@ -62,9 +62,10 @@ export function clientLoader({
       // if user grants location permission, we'll redirect to the page with the location
       .then((position) =>
         redirect(
-          new URLSearchParams({
-            location: `${position.coords.latitude},${position.coords.longitude}`,
-          }).toString()
+          "?" +
+            new URLSearchParams({
+              location: `${position.coords.latitude},${position.coords.longitude}`,
+            }).toString()
         )
       )
       // otherwise. user denies location permission, we'll just show the default page
