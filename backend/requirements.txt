@@ -36,8 +36,12 @@ flupy==1.2.0
 fqdn==1.5.1
 frozenlist==1.4.1
 fsspec==2024.6.1
+geographiclib==2.0
+geopy==2.4.1
+gevent==24.10.1
 gotrue==2.6.1
-greenlet==3.0.3
+greenlet==3.1.1
+grequests==0.7.0
 h11==0.14.0
 h2==4.1.0
 hpack==4.0.0
@@ -186,3 +190,5 @@ websocket-client==1.8.0
 websockets==12.0
 wrapt==1.16.0
 yarl==1.9.4
+zope.event==5.0
+zope.interface==7.1.0
