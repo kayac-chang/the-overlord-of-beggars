@@ -4,17 +4,15 @@ from fastapi import FastAPI, Path, Query, Request
 from geopy import distance
 from pydantic import TypeAdapter
 
-from backend.config import settings
-from backend.data_sources.open_point.get_access_token import get_access_token
-from backend.data_sources.open_point.get_store_detail import get_store_detail
-from backend.data_sources.open_point.get_stores_by_address import \
-    get_stores_by_address
-from backend.data_sources.open_point.get_stores_by_geolocation import \
-    get_stores_by_geolocation
-from backend.models.geolocation import GeoLocation
-from backend.models.response import Response
-from backend.models.stock import Stock
-from backend.models.store import Store
+from .config import settings
+from .data_sources.open_point.get_access_token import get_access_token
+from .data_sources.open_point.get_store_detail import get_store_detail
+from .data_sources.open_point.get_stores_by_address import get_stores_by_address
+from .data_sources.open_point.get_stores_by_geolocation import get_stores_by_geolocation
+from .models.geolocation import GeoLocation
+from .models.response import Response
+from .models.stock import Stock
+from .models.store import Store
 
 app = FastAPI()
 

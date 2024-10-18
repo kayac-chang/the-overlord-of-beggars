@@ -1,6 +1,5 @@
 import aiohttp
-
-from backend.models.geolocation import GeoLocation
+from app.models.geolocation import GeoLocation
 
 from .model import Response, Store
 from .share import USER_AGENT

@@ -1,15 +1,9 @@
 import aiohttp
+from app.models.geolocation import GeoLocation
 from pydantic import BaseModel, Field
-
-from backend.models.geolocation import GeoLocation
 
 from .model import Response
 from .share import USER_AGENT
-
-
-class Item(BaseModel):
-    item_name: str = Field(alias="ItemName", description="商品名稱")
-    remaining_qty: int = Field(alias="RemainingQty", description="商品數量")
 
 
 class CategoryStockItem(BaseModel):
@@ -18,7 +12,6 @@ class CategoryStockItem(BaseModel):
     remaining_qty: int = Field(
         alias="RemainingQty", description="該商品分類的剩餘即期品數量"
     )
-    items: list[Item] = Field(alias="ItemList", description="商品清單")
 
 
 class StoreStockItem(BaseModel):
@@ -32,31 +25,30 @@ class StoreStockItem(BaseModel):
     )
 
 
-class StoreDetailResponse(BaseModel):
-    store_stock_item: StoreStockItem = Field(
-        alias="StoreStockItem", description="門市庫存清單"
+class NearbyStoreDetailResponse(BaseModel):
+    store_stock_item_list: list[StoreStockItem] = Field(
+        alias="StoreStockItemList", description="即期品相關資訊列表"
     )
+
     store_item_stock_update_time: str = Field(
         alias="StoreItemStockUpdateTime", description="門市即期品更新時間"
     )
 
 
-async def get_store_detail(
-    token: str,
-    store_id: str,
-    current_location: GeoLocation = {"latitude": 0, "longitude": 0},
-) -> StoreDetailResponse:
+async def get_nearby_stores_by_geolocation(
+    token: str, current_location: GeoLocation, search_location: GeoLocation
+) -> NearbyStoreDetailResponse:
     """
-    get store detail 取得門市庫存
+    get nearby stores by geolocation 取得鄰近門市庫存清單 (從經緯度)
 
-    POST /Search/FrontendStoreItemStock/GetStoreDetail?token=$token
+    POST /Search/FrontendStoreItemStock/GetNearbyStoreList?token=$token
     user-agent: $user_agent
     content-type: application/json
     """
 
     async with aiohttp.ClientSession() as session:
         async with session.post(
-            f"https://lovefood.openpoint.com.tw/LoveFood/api/Search/FrontendStoreItemStock/GetStoreDetail",
+            f"https://lovefood.openpoint.com.tw/LoveFood/api/Search/FrontendStoreItemStock/GetNearbyStoreList",
             params={"token": token},
             headers={"user-agent": USER_AGENT},
             json={
@@ -64,12 +56,15 @@ async def get_store_detail(
                     "Latitude": current_location["latitude"],
                     "Longitude": current_location["longitude"],
                 },
-                "StoreNo": store_id,
+                "SearchLocation": {
+                    "Latitude": search_location["latitude"],
+                    "Longitude": search_location["longitude"],
+                },
             },
         ) as response:
 
             response_json = await response.json()
 
-            res = Response[StoreDetailResponse].model_validate(response_json)
+            res = Response[NearbyStoreDetailResponse].model_validate(response_json)
 
             return res.element
