@@ -23,8 +23,8 @@
     - [x] get nearly expired foods by store id
 - [x] frontend 取得用戶當前 geolocation
 - [x] frontend geoloaction 與頁面導向邏輯
-- [ ] frontend 基本 UI 建置
-    - [ ] StoreTable
-        - [ ] NearlyExpiredFoodsTable
+- [x] frontend 基本 UI 建置
+    - [x] StoreTable
+        - [x] NearlyExpiredFoodsTable
 
 

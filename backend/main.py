@@ -1,16 +1,16 @@
 from typing import Annotated
 
-from fastapi import FastAPI, Query, Request
+from fastapi import FastAPI, Path, Query, Request
 from geopy import distance
 from pydantic import TypeAdapter
 
 from backend.config import settings
 from backend.data_sources.open_point.get_access_token import get_access_token
 from backend.data_sources.open_point.get_store_detail import get_store_detail
-from backend.data_sources.open_point.get_stores_by_address import get_stores_by_address
-from backend.data_sources.open_point.get_stores_by_geolocation import (
-    get_stores_by_geolocation,
-)
+from backend.data_sources.open_point.get_stores_by_address import \
+    get_stores_by_address
+from backend.data_sources.open_point.get_stores_by_geolocation import \
+    get_stores_by_geolocation
 from backend.models.geolocation import GeoLocation
 from backend.models.response import Response
 from backend.models.stock import Stock
@@ -132,7 +132,7 @@ async def get_stores(
 
 
 @app.get("/stores/{store_id}/stock")
-async def get_store_stock(store_id: str) -> Response[list[Stock]]:
+async def get_store_stock(store_id: str = Path()) -> Response[list[Stock]]:
     """
     查詢門市庫存
     """

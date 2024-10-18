@@ -7,11 +7,13 @@ import {
 import { StoreWithNearExpiredFoodSchema } from "~/models/store_with_near_expired_foods";
 import getNearExpiredFoodsByStoreId from "~/services/get_near_expired_foods_by_store_id";
 import searchStoresByGeoLocation from "~/services/search_stores_by_geolocation";
+import StoreTable from "./store_table";
+import NearExpiredFoodTable from "./near_expired_food_table";
 
 export const meta: MetaFunction = () => {
   return [
-    { title: "New Remix App" },
-    { name: "description", content: "Welcome to Remix!" },
+    { title: "首頁 | The Overload Of Beggars 乞丐超人" },
+    //
   ];
 };
 
@@ -83,26 +85,14 @@ export default function Index() {
 
   // display the nearby stores and their near expired foods
   return (
-    <>
-      <ul>
-        {data.map((store) => (
-          <li key={store.id}>
-            <div>
-              <h3>{store.name}</h3>
-              <p>{store.address}</p>
-              <ul>
-                {store.nearExpiredFoods.map((nearExpiredFood) => (
-                  <li key={nearExpiredFood.name}>
-                    <p>
-                      {nearExpiredFood.name} - {nearExpiredFood.quantity}
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </li>
-        ))}
-      </ul>
-    </>
+    <div className="container mx-auto">
+      <StoreTable
+        className="max-w-screen-lg mx-auto"
+        data={data}
+        renderSubComponent={(store) => (
+          <NearExpiredFoodTable data={store.nearExpiredFoods} />
+        )}
+      />
+    </div>
   );
 }
