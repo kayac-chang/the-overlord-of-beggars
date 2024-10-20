@@ -6,3 +6,7 @@ export const GeoLocationSchema = z.object({
 });
 
 export type GeoLocation = z.infer<typeof GeoLocationSchema>;
+
+export function toString(location: GeoLocation): string {
+  return `${location.latitude},${location.longitude}`;
+}

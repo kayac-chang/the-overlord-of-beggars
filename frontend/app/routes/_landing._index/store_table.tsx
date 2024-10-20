@@ -3,7 +3,7 @@ import {
   getCoreRowModel,
   getExpandedRowModel,
   flexRender,
-  ColumnDef,
+  createColumnHelper,
 } from "@tanstack/react-table";
 import { ComponentProps, Fragment, ReactNode } from "react";
 import {
@@ -14,46 +14,64 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
-import { StoreWithNearExpiredFood } from "~/models/store_with_near_expired_foods";
+import { Toggle } from "~/components/ui/toggle";
+import { Store } from "~/models/store";
 
-const columns: ColumnDef<StoreWithNearExpiredFood>[] = [
-  {
+const helper = createColumnHelper<Store>();
+
+const columns = [
+  helper.display({
     id: "expand",
     cell: (props) =>
       props.row.getCanExpand() && (
-        <span>{props.row.getIsExpanded() ? "👇" : "👉"}</span>
+        <Toggle
+          type="submit"
+          pressed={props.row.getIsExpanded()}
+          onPressedChange={props.row.toggleExpanded}
+          name={!props.row.getIsExpanded() ? "stores" : undefined}
+          value={props.row.id}
+        >
+          {props.row.getIsExpanded() ? "👇" : "👉"}
+        </Toggle>
       ),
-  },
-  {
-    accessorKey: "name",
-    header: "店名",
-  },
-  {
-    accessorKey: "address",
-    header: "地址",
-  },
-  {
-    accessorKey: "distance",
+  }),
+  helper.accessor("name", { header: "店名" }),
+  helper.accessor("address", { header: "地址" }),
+  helper.accessor("distance", {
     header: "距離",
-  },
+    cell: (props) => {
+      const value = props.getValue();
+
+      if (!value) return null;
+
+      return Intl.NumberFormat("zh-TW", {
+        style: "unit",
+        unit: "meter",
+        maximumFractionDigits: 0,
+      }).format(value);
+    },
+  }),
 ];
 
 type Props = ComponentProps<typeof Table> & {
-  data: StoreWithNearExpiredFood[];
-  renderSubComponent?: (data: StoreWithNearExpiredFood) => ReactNode;
+  data: Store[];
+  expanded?: Store["id"];
+  renderSubComponent?: (data: Store) => ReactNode;
 };
-function StoreTable({ data, renderSubComponent, ...props }: Props) {
+function StoreTable({ data, renderSubComponent, expanded, ...props }: Props) {
   const table = useReactTable({
     columns,
     data,
     getCoreRowModel: getCoreRowModel(),
     getExpandedRowModel: getExpandedRowModel(),
     getRowId: (row) => row.id,
-    getRowCanExpand: (row) => row.original.nearExpiredFoods.length > 0,
-    initialState: {
-      columnVisibility: {
-        expand: Boolean(renderSubComponent),
-      },
+    getRowCanExpand: () => true,
+    state: {
+      expanded: expanded
+        ? {
+            [expanded]: true,
+          }
+        : undefined,
     },
   });
 
@@ -76,11 +94,7 @@ function StoreTable({ data, renderSubComponent, ...props }: Props) {
     <TableBody>
       {table.getRowModel().rows.map((row) => (
         <Fragment key={row.id}>
-          <TableRow
-            onClick={
-              row.getCanExpand() ? row.getToggleExpandedHandler() : undefined
-            }
-          >
+          <TableRow>
             {row.getVisibleCells().map((cell) => (
               <TableCell key={cell.id}>
                 {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -88,7 +102,7 @@ function StoreTable({ data, renderSubComponent, ...props }: Props) {
             ))}
           </TableRow>
 
-          {row.getIsExpanded() && (
+          {renderSubComponent && row.getIsExpanded() && (
             <TableRow>
               <TableCell colSpan={row.getVisibleCells().length}>
                 {renderSubComponent?.(row.original)}

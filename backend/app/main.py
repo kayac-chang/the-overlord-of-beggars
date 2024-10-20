@@ -30,21 +30,21 @@ async def get_stores(
         str | None,
         Query(description="經緯度座標", regex=r"^-?\d+\.\d+,-?\d+\.\d+$"),
     ] = None,
-    address: Annotated[str | None, Query(description="地址")] = None,
+    keyword: Annotated[str | None, Query(description="關鍵字")] = None,
 ) -> Response[list[Store]]:
     """
     查詢門市
     """
     # @todo: refactor the code
 
-    if address:
+    if keyword:
         # get access token for open point
         token = await get_access_token(settings.OPEN_POINT_MID_V)
 
         # search the stores from data sources ( 7-11, FamilyMart, ...etc )
-        _stores = await get_stores_by_address(token=token, keyword=address)
+        _stores = await get_stores_by_address(token=token, keyword=keyword)
 
-        stores = []
+        stores: list[Store] = []
         for store in _stores:
             # filter the stores that are not open, out of stock, or not in operation time
             if store.is_x_store or not store.is_operate_time or not store.has_stock:
@@ -79,7 +79,21 @@ async def get_stores(
         # if user location is provided,
         # sort the stores by distance
         if location:
-            stores.sort(key=lambda store: store.distance)
+
+            def sort_by_distance(store: Store):
+                assert store.distance is not None
+                return store.distance
+
+            stores.sort(key=sort_by_distance)
+
+        # sort by the keyword matches
+        else:
+
+            # how many characters are matched between the query address and the store address
+            def get_keyword_matches(store: Store):
+                return len(set(keyword) & set(store.address))
+
+            stores.sort(key=get_keyword_matches, reverse=True)
 
         return Response(data=stores)
 
@@ -101,7 +115,7 @@ async def get_stores(
             search_location=loc,
         )
 
-        stores = []
+        stores: list[Store] = []
         for store in _stores:
             # filter the stores that are not open, out of stock, or not in operation time
             if store.is_x_store or not store.is_operate_time or not store.has_stock:
@@ -120,7 +134,11 @@ async def get_stores(
             )
 
         # sort the stores by distance
-        stores.sort(key=lambda store: store.distance)
+        def sort_by_distance(store: Store):
+            assert store.distance is not None
+            return store.distance
+
+        stores.sort(key=sort_by_distance)
 
         return Response(data=stores)
 
