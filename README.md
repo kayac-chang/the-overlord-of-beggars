@@ -19,8 +19,10 @@
     - [x] GET /stores
     - [x] GET /stores/:store_id/stocks
 
+- [x] cache open_point / get_stores_by_address
+- [x] cache open_point / get_stores_by_geolocation
+
 - [ ] backend 將第三方資料備份到自家的資料庫
-- [ ] backend 背景追蹤店家的即期品數量
 
 - [x] frontend api 串接
     - [x] search stores by geolocation
@@ -36,3 +38,8 @@
 
 - [x] backend 部署
 - [x] frontend 部署
+
+
+
+- [ ] 訂閱功能
+    - [ ] backend 背景追蹤店家的即期品數量

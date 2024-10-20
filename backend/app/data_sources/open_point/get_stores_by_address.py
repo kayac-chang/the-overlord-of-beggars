@@ -1,9 +1,16 @@
 import aiohttp
+from asyncache import cached
+from cachetools import LRUCache
 
 from .model import Response, Store
 from .share import USER_AGENT
 
 
+def key_func(token: str, keyword: str):
+    return keyword
+
+
+@cached(cache=LRUCache(maxsize=128), key=key_func)
 async def get_stores_by_address(token: str, keyword: str) -> list[Store]:
     """
     get stores by address 取得門市清單 (從店名/地址)

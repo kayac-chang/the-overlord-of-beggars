@@ -1,10 +1,23 @@
 import aiohttp
 from app.models.geolocation import GeoLocation
+from asyncache import cached
+from cachetools import LRUCache
 
 from .model import Response, Store
 from .share import USER_AGENT
 
 
+def geolocation_to_str(geolocation: GeoLocation) -> str:
+    return f"{geolocation['latitude']},{geolocation['longitude']}"
+
+
+def key_func(token: str, current_location: GeoLocation, search_location: GeoLocation):
+    return (
+        f"{geolocation_to_str(current_location)}-{geolocation_to_str(search_location)}"
+    )
+
+
+@cached(cache=LRUCache(maxsize=128), key=key_func)
 async def get_stores_by_geolocation(
     token: str, current_location: GeoLocation, search_location: GeoLocation
 ) -> list[Store]:
