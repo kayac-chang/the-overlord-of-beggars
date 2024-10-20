@@ -18,6 +18,7 @@ import { P, match } from "ts-pattern";
 import { LocateFixed, Locate } from "lucide-react";
 import { toString as toGeoString } from "~/models/geolocation";
 import getNearExpiredFoodsByStoreId from "~/services/get_near_expired_foods_by_store_id";
+import pProps from "p-props";
 
 export const meta: MetaFunction = () => {
   return [
@@ -35,15 +36,11 @@ const QuerySchema = makeSearchParamsObjSchema(
 );
 
 export async function loader(args: LoaderFunctionArgs) {
-  const query = await QuerySchema.safeParseAsync(
+  const query = await QuerySchema.parseAsync(
     new URL(args.request.url).searchParams
   );
 
-  if (!query.success) {
-    return null;
-  }
-
-  const stores = await match(query.data)
+  const stores = match(query)
     // 關鍵字 + 經緯度 搜尋附近的店家
     .with(
       {
@@ -81,7 +78,7 @@ export async function loader(args: LoaderFunctionArgs) {
       return null;
     });
 
-  const storesWithNearExpiredFoods = await match(query.data.stores)
+  const storesWithNearExpiredFoods = match(query.stores)
     .with(P.string.minLength(1), (query) =>
       Promise.all([
         getNearExpiredFoodsByStoreId(query).then((foods) => ({
@@ -94,19 +91,15 @@ export async function loader(args: LoaderFunctionArgs) {
       return null;
     });
 
-  return { query: query.data, stores, storesWithNearExpiredFoods };
+  return pProps({ query, stores, storesWithNearExpiredFoods });
 }
 
-export async function clientLoader(args: ClientLoaderFunctionArgs) {
+export function clientLoader(args: ClientLoaderFunctionArgs) {
   const url = new URL(args.request.url);
 
-  const query = await QuerySchema.safeParseAsync(url.searchParams);
-  console.log(query);
-  if (!query.success) {
-    return null;
-  }
+  const query = QuerySchema.parse(url.searchParams);
 
-  return match(query.data)
+  return match(query)
     .with({ keyword: "" }, () => {
       url.searchParams.delete("keyword");
       return replace(url.toString());
@@ -132,14 +125,42 @@ export async function clientLoader(args: ClientLoaderFunctionArgs) {
           return redirect(url.toString());
         })
     )
-    .otherwise(() => {
-      return args.serverLoader();
-    });
+    .otherwise(() => args.serverLoader<typeof loader>());
 }
-clientLoader.hydrate = true;
+
+function LocateToggle() {
+  const data = useLoaderData<typeof clientLoader>();
+  const pressed = Boolean(data?.query.location);
+
+  if (pressed) {
+    return (
+      <Toggle
+        key={pressed ? "on" : "off"}
+        type="submit"
+        className="group"
+        defaultPressed={pressed}
+      >
+        <LocateFixed className="group-data-[state=off]:hidden" />
+        <Locate className="group-data-[state=on]:hidden" />
+      </Toggle>
+    );
+  }
+
+  return (
+    <Toggle
+      key={pressed ? "on" : "off"}
+      type="submit"
+      className="group"
+      defaultPressed={pressed}
+      name="location"
+    >
+      <Locate className="group-data-[state=on]:animate-blink" />
+    </Toggle>
+  );
+}
 
 export default function Index() {
-  const data = useLoaderData<typeof loader>();
+  const data = useLoaderData<typeof clientLoader>();
   return (
     <div className="max-w-screen-lg mx-auto px-8 py-8">
       <div className="flex gap-4">
@@ -160,16 +181,7 @@ export default function Index() {
         </Form>
 
         <Form>
-          <Toggle
-            type="submit"
-            className="group"
-            pressed={Boolean(data?.query.location)}
-            name={!data?.query.location ? "location" : undefined}
-            value={data?.query.location ?? ""}
-          >
-            <Locate className="group-data-[state='on']:hidden" />
-            <LocateFixed className="group-data-[state='off']:hidden" />
-          </Toggle>
+          <LocateToggle />
 
           {data?.query.keyword && (
             <input type="hidden" name="keyword" value={data.query.keyword} />
@@ -181,14 +193,15 @@ export default function Index() {
       </div>
 
       {/* display the nearby stores and their near expired foods */}
-      <Form className="mt-4">
+      <Form className="mt-4" preventScrollReset>
         <StoreTable
-          data={data?.stores ?? []}
+          data={data.stores ?? []}
           expanded={data?.query.stores ?? undefined}
           renderSubComponent={(store) => {
             const found = data?.storesWithNearExpiredFoods?.find(
               (item) => item.storeId === store.id
             );
+
             return <NearExpiredFoodTable data={found?.foods ?? []} />;
           }}
         />

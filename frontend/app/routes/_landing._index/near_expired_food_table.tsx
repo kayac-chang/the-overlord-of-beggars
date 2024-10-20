@@ -4,7 +4,7 @@ import {
   flexRender,
   ColumnDef,
 } from "@tanstack/react-table";
-import { ComponentProps } from "react";
+import { ComponentProps, memo } from "react";
 import {
   Table,
   TableBody,
@@ -14,6 +14,7 @@ import {
   TableRow,
 } from "~/components/ui/table";
 import { NearExpiredFood } from "~/models/near_expired_food";
+import { equals } from "ramda";
 
 const columns: ColumnDef<NearExpiredFood>[] = [
   {
@@ -71,11 +72,16 @@ function NearExpiredFoodTable({ data, ...props }: Props) {
   );
 
   return (
-    <Table {...props}>
-      {head}
-      {body}
-    </Table>
+    <div
+      className="-mt-32 pt-32"
+      ref={(ref) => ref?.scrollIntoView({ behavior: "smooth" })}
+    >
+      <Table {...props}>
+        {head}
+        {body}
+      </Table>
+    </div>
   );
 }
 
-export default NearExpiredFoodTable;
+export default memo(NearExpiredFoodTable, equals);

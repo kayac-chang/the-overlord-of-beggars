@@ -28,10 +28,11 @@
 - [x] frontend 取得用戶當前 geolocation
 - [x] frontend geoloaction 與頁面導向邏輯
 - [x] frontend UI
+    - [x] ProgressBar
     - [x] StoreTable
         - [x] NearlyExpiredFoodsTable
-    - [ ] Search Input
-    - [ ] Filter by Item Category
+    - [x] Search Input
+    - [x] Locate Toggle
 
 - [x] backend 部署
 - [x] frontend 部署
