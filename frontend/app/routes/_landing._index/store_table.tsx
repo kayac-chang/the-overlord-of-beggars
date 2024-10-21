@@ -30,6 +30,7 @@ const columns = [
           onPressedChange={props.row.toggleExpanded}
           name={!props.row.getIsExpanded() ? "stores" : undefined}
           value={props.row.id}
+          // @todo: 展開點下去瞬間 icon 要變成 loading
         >
           {props.row.getIsExpanded() ? "👇" : "👉"}
         </Toggle>
