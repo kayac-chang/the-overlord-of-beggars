@@ -1,20 +1,16 @@
 # The Overload Of Beggars - Backend
 
-### Setup
+### Requirements
 
-Enable the virtual environment
+- Poetry 1.8.0 or later
+
+### Setup Development Environment
+
 ```sh
-python -m venv .venv
-source .venv/bin/activate
-python -m pip install --upgrade pip
+poetry install
+poetry shell
 ```
-
-Install the dependencies
-```sh
-pip install -r requirements.txt
-```
-
-Start development server
+#### Start development server
 ```sh
 fastapi dev
 ```
