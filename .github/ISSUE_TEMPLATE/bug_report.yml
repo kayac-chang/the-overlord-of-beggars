@@ -1,0 +1,17 @@
+name: 🐛 Bug Report
+description: Something is wrong.
+labels:
+  - "bug:unverified"
+body:
+  - type: textarea
+    attributes:
+      label: Expected Behavior
+      description: A concise description of what you expected to happen.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Actual Behavior
+      description: A concise description of what you're experiencing.
+    validations:
+      required: true
