@@ -1,0 +1,21 @@
+name: 🌟 功能許願
+description: 程式好像發生問題了
+labels:
+  - "bug:unverified"
+body:
+  - type: textarea
+    attributes:
+      label: 預期行為
+      description: 描述你希望增加的功能
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: 用戶情境
+      description: 描述你為什麼需要這項功能
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: 附註
+      description: 附註
