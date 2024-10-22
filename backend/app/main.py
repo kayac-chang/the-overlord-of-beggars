@@ -45,10 +45,18 @@ async def get_stores(
         _stores = await get_stores_by_address(token=token, keyword=keyword)
 
         stores: list[Store] = []
-        for store in _stores:
+        for _store in _stores:
             # filter the stores that are not open, out of stock, or not in operation time
-            if store.is_x_store or not store.is_operate_time or not store.has_stock:
+            if _store.is_x_store or not _store.is_operate_time or not _store.has_stock:
                 continue
+
+            store = Store(
+                id=_store.store_no,
+                name=_store.store_name,
+                address=_store.address,
+                latitude=_store.latitude,
+                longitude=_store.longitude,
+            )
 
             # if user location is provided,
             # calculate the distance between the store and the user
@@ -60,21 +68,12 @@ async def get_stores(
                     {"latitude": latitude, "longitude": longitude}
                 )
                 store.distance = distance.distance(
-                    (store.latitude, store.longitude),
+                    (_store.latitude, _store.longitude),
                     (loc["latitude"], loc["longitude"]),
                 ).m
 
             # append the store information to the list
-            stores.append(
-                Store(
-                    id=store.store_no,
-                    name=store.store_name,
-                    address=store.address,
-                    latitude=store.latitude,
-                    longitude=store.longitude,
-                    distance=store.distance,
-                )
-            )
+            stores.append(store)
 
         # if user location is provided,
         # sort the stores by distance
@@ -116,20 +115,20 @@ async def get_stores(
         )
 
         stores: list[Store] = []
-        for store in _stores:
+        for _store in _stores:
             # filter the stores that are not open, out of stock, or not in operation time
-            if store.is_x_store or not store.is_operate_time or not store.has_stock:
+            if _store.is_x_store or not _store.is_operate_time or not _store.has_stock:
                 continue
 
             # append the store information to the list
             stores.append(
                 Store(
-                    id=store.store_no,
-                    name=store.store_name,
-                    address=store.address,
-                    latitude=store.latitude,
-                    longitude=store.longitude,
-                    distance=store.distance,
+                    id=_store.store_no,
+                    name=_store.store_name,
+                    address=_store.address,
+                    latitude=_store.latitude,
+                    longitude=_store.longitude,
+                    distance=_store.distance,
                 )
             )
 
