@@ -1,17 +1,17 @@
 name: 🐛 Bug Report
-description: Something is wrong.
+description: 程式好像發生問題了
 labels:
   - "bug:unverified"
 body:
   - type: textarea
     attributes:
-      label: Expected Behavior
-      description: A concise description of what you expected to happen.
+      label: 預期行為
+      description: 用精簡的方式描述你預期程式應該要做的行為
     validations:
       required: true
   - type: textarea
     attributes:
-      label: Actual Behavior
-      description: A concise description of what you're experiencing.
+      label: 實際行為
+      description: 用精簡的方式描述你實際程式做的行為
     validations:
       required: true
