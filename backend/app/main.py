@@ -11,6 +11,7 @@ from .models.response import Response
 from .models.stock import Stock
 from .models.store import Store
 from .services.open_point_store_search_service import OpenPointStoreSearchService
+from .services.family_mart_store_search_service import FamilyMartStoreSearchService
 from .services.store_search_reducer import reducer
 
 app = FastAPI()
@@ -24,7 +25,10 @@ def parse_list(param_name: str):
 
 
 # add your store search services here
-store_search_services = [OpenPointStoreSearchService(settings.OPEN_POINT_MID_V)]
+store_search_services = [
+    OpenPointStoreSearchService(settings.OPEN_POINT_MID_V),
+    FamilyMartStoreSearchService()
+]
 
 
 @app.get("/stores")
