@@ -1,4 +1,4 @@
-name: 🐛 Bug Report
+name: 🐛 發現 BUG
 description: 程式好像發生問題了
 labels:
   - "bug:unverified"
