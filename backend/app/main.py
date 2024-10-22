@@ -1,5 +1,7 @@
 from typing import Annotated
 
+import sys
+
 from fastapi import FastAPI, Path, Query, Request
 from geopy import distance
 from pydantic import TypeAdapter
@@ -9,6 +11,7 @@ from .data_sources.open_point.get_access_token import get_access_token
 from .data_sources.open_point.get_store_detail import get_store_detail
 from .data_sources.open_point.get_stores_by_address import get_stores_by_address
 from .data_sources.open_point.get_stores_by_geolocation import get_stores_by_geolocation
+from .data_sources import family_mart
 from .models.geolocation import GeoLocation
 from .models.response import Response
 from .models.stock import Stock
@@ -38,11 +41,18 @@ async def get_stores(
     # @todo: refactor the code
 
     if keyword:
-        # get access token for open point
-        token = await get_access_token(settings.OPEN_POINT_MID_V)
 
-        # search the stores from data sources ( 7-11, FamilyMart, ...etc )
-        _stores = await get_stores_by_address(token=token, keyword=keyword)
+        _stores = []
+
+        # NOTE: this try block handles errors of getting token
+        try:
+            # get access token for open point
+            token = await get_access_token(settings.OPEN_POINT_MID_V)
+
+            # search the stores from data sources ( 7-11, FamilyMart, ...etc )
+            _stores = await get_stores_by_address(token=token, keyword=keyword)
+        except Exception as e:
+            print(e, file=sys.stderr)
 
         stores: list[Store] = []
         for _store in _stores:
@@ -104,15 +114,21 @@ async def get_stores(
             {"latitude": latitude, "longitude": longitude}
         )
 
-        # get access token for open point
-        token = await get_access_token(settings.OPEN_POINT_MID_V)
+        _stores = []
 
-        # search the stores from data sources by geolocation
-        _stores = await get_stores_by_geolocation(
-            token=token,
-            current_location=loc,
-            search_location=loc,
-        )
+        # NOTE: this try block handles errors of getting token
+        try:
+             # get access token for open point
+            token = await get_access_token(settings.OPEN_POINT_MID_V)
+
+            # search the stores from data sources by geolocation
+            _stores = await get_stores_by_geolocation(
+                token=token,
+                current_location=loc,
+                search_location=loc,
+            )
+        except Exception as e:
+            print(e, file=sys.stderr)
 
         stores: list[Store] = []
         for _store in _stores:
@@ -121,6 +137,22 @@ async def get_stores(
                 continue
 
             # append the store information to the list
+            stores.append(
+                Store(
+                    id=_store.store_no,
+                    name=_store.store_name,
+                    address=_store.address,
+                    latitude=_store.latitude,
+                    longitude=_store.longitude,
+                    distance=_store.distance,
+                )
+            )
+
+        # TODO: parallel fetch
+        _stores2 = await family_mart.get_stores_by_geolocation(loc)
+        for _store in _stores2:
+            if not _store.has_stock:
+                continue
             stores.append(
                 Store(
                     id=_store.store_no,
