@@ -1,3 +1,4 @@
+import { useLoaderData } from "@remix-run/react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -16,6 +17,52 @@ import {
 } from "~/components/ui/table";
 import { Toggle } from "~/components/ui/toggle";
 import { Store } from "~/models/store";
+import { clientLoader } from "./route";
+import { LoaderCircle } from "lucide-react";
+
+type ExpandButtonProps = {
+  value: string;
+  pressed: boolean;
+  onPressedChange: () => void;
+};
+
+function ExpandButton(props: ExpandButtonProps) {
+  const data = useLoaderData<typeof clientLoader>();
+  const hasLoaded = Boolean(data?.storesWithNearExpiredFoods);
+
+  // 展開點下去瞬間 icon 要變成 loading
+  if (props.pressed && hasLoaded) {
+    return (
+      <Toggle
+        type="submit"
+        defaultPressed={props.pressed}
+        onPressedChange={props.onPressedChange}
+        className="group"
+      >
+        <span className="group-data-[state=off]:hidden">👇</span>
+        <span className="group-data-[state=on]:hidden">
+          <LoaderCircle className="size-4 animate-spin" />
+        </span>
+      </Toggle>
+    );
+  }
+
+  return (
+    <Toggle
+      type="submit"
+      defaultPressed={props.pressed}
+      onPressedChange={props.onPressedChange}
+      name="stores"
+      value={props.value}
+      className="group"
+    >
+      <span className="group-data-[state=on]:hidden">👉</span>
+      <span className="group-data-[state=off]:hidden">
+        <LoaderCircle className="size-4 animate-spin" />
+      </span>
+    </Toggle>
+  );
+}
 
 const helper = createColumnHelper<Store>();
 
@@ -24,16 +71,12 @@ const columns = [
     id: "expand",
     cell: (props) =>
       props.row.getCanExpand() && (
-        <Toggle
-          type="submit"
+        <ExpandButton
+          key={props.row.getIsExpanded() ? "expanded" : "collapsed"}
           pressed={props.row.getIsExpanded()}
           onPressedChange={props.row.toggleExpanded}
-          name={!props.row.getIsExpanded() ? "stores" : undefined}
           value={props.row.id}
-          // @todo: 展開點下去瞬間 icon 要變成 loading
-        >
-          {props.row.getIsExpanded() ? "👇" : "👉"}
-        </Toggle>
+        />
       ),
   }),
   helper.accessor("name", { header: "店名" }),
@@ -106,7 +149,7 @@ function StoreTable({ data, renderSubComponent, expanded, ...props }: Props) {
           {renderSubComponent && row.getIsExpanded() && (
             <TableRow>
               <TableCell colSpan={row.getVisibleCells().length}>
-                {renderSubComponent?.(row.original)}
+                {renderSubComponent(row.original)}
               </TableCell>
             </TableRow>
           )}
