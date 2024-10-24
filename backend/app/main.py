@@ -1,18 +1,17 @@
 from typing import Annotated
 
 from fastapi import FastAPI, Path, Query, Request
-from geopy import distance
 from pydantic import TypeAdapter
 
 from .config import settings
 from .data_sources.open_point.get_access_token import get_access_token
 from .data_sources.open_point.get_store_detail import get_store_detail
-from .data_sources.open_point.get_stores_by_address import get_stores_by_address
-from .data_sources.open_point.get_stores_by_geolocation import get_stores_by_geolocation
 from .models.geolocation import GeoLocation
 from .models.response import Response
 from .models.stock import Stock
 from .models.store import Store
+from .services.open_point_store_search_service import OpenPointStoreSearchService
+from .services.store_search_reducer import reducer
 
 app = FastAPI()
 
@@ -22,6 +21,10 @@ def parse_list(param_name: str):
         return request.query_params[param_name].split(",")
 
     return parse
+
+
+# add your store search services here
+store_search_services = [OpenPointStoreSearchService(settings.OPEN_POINT_MID_V)]
 
 
 @app.get("/stores")
@@ -35,113 +38,17 @@ async def get_stores(
     """
     查詢門市
     """
-    # @todo: refactor the code
 
-    if keyword:
-        # get access token for open point
-        token = await get_access_token(settings.OPEN_POINT_MID_V)
-
-        # search the stores from data sources ( 7-11, FamilyMart, ...etc )
-        _stores = await get_stores_by_address(token=token, keyword=keyword)
-
-        stores: list[Store] = []
-        for _store in _stores:
-            # filter the stores that are not open, out of stock, or not in operation time
-            if _store.is_x_store or not _store.is_operate_time or not _store.has_stock:
-                continue
-
-            store = Store(
-                id=_store.store_no,
-                name=_store.store_name,
-                address=_store.address,
-                latitude=_store.latitude,
-                longitude=_store.longitude,
-            )
-
-            # if user location is provided,
-            # calculate the distance between the store and the user
-            if location:
-                [latitude, longitude] = location.split(",")
-
-                # parse the location to GeoLocation
-                loc = TypeAdapter(GeoLocation).validate_python(
-                    {"latitude": latitude, "longitude": longitude}
-                )
-                store.distance = distance.distance(
-                    (_store.latitude, _store.longitude),
-                    (loc["latitude"], loc["longitude"]),
-                ).m
-
-            # append the store information to the list
-            stores.append(store)
-
-        # if user location is provided,
-        # sort the stores by distance
-        if location:
-
-            def sort_by_distance(store: Store):
-                assert store.distance is not None
-                return store.distance
-
-            stores.sort(key=sort_by_distance)
-
-        # sort by the keyword matches
-        else:
-
-            # how many characters are matched between the query address and the store address
-            def get_keyword_matches(store: Store):
-                return len(set(keyword) & set(store.address))
-
-            stores.sort(key=get_keyword_matches, reverse=True)
-
-        return Response(data=stores)
-
+    loc = None
     if location:
         [latitude, longitude] = location.split(",")
-
-        # parse the location to GeoLocation
         loc = TypeAdapter(GeoLocation).validate_python(
             {"latitude": latitude, "longitude": longitude}
         )
 
-        # get access token for open point
-        token = await get_access_token(settings.OPEN_POINT_MID_V)
+    stores = await reducer(store_search_services, keyword, loc)
 
-        # search the stores from data sources by geolocation
-        _stores = await get_stores_by_geolocation(
-            token=token,
-            current_location=loc,
-            search_location=loc,
-        )
-
-        stores: list[Store] = []
-        for _store in _stores:
-            # filter the stores that are not open, out of stock, or not in operation time
-            if _store.is_x_store or not _store.is_operate_time or not _store.has_stock:
-                continue
-
-            # append the store information to the list
-            stores.append(
-                Store(
-                    id=_store.store_no,
-                    name=_store.store_name,
-                    address=_store.address,
-                    latitude=_store.latitude,
-                    longitude=_store.longitude,
-                    distance=_store.distance,
-                )
-            )
-
-        # sort the stores by distance
-        def sort_by_distance(store: Store):
-            assert store.distance is not None
-            return store.distance
-
-        stores.sort(key=sort_by_distance)
-
-        return Response(data=stores)
-
-    raise ValueError
+    return Response(data=stores)
 
     # @todo: background. save the stores to the database
 
