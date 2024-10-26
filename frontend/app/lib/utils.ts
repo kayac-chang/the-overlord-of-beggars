@@ -23,3 +23,9 @@ export function makeSearchParamsObjSchema<
     .transform(searchParamsToValues)
     .pipe(schema);
 }
+
+export function coerceToArray<Schema extends z.ZodArray<z.ZodTypeAny>>(
+  schema: Schema
+) {
+  return z.union([z.any().array(), z.any().transform((x) => [x])]).pipe(schema);
+}
