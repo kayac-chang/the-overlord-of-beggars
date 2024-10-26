@@ -16,9 +16,6 @@ WORKDIR /app
 # Copy the pyproject.toml and poetry.lock files to the builder stage
 COPY pyproject.toml poetry.lock ./
 
-# Copy the .env file to the builder stage
-COPY .env ./
-
 # Install the project dependencies in the builder stage
 RUN --mount=type=cache,target=$POETRY_CACHE_DIR poetry install --without dev --no-root
 
@@ -33,9 +30,6 @@ COPY --from=builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}
 WORKDIR /app
 
 COPY app /app/app/
-
-# Copy the .env file to the builder stage
-COPY .env /app/
 
 # Expose the port your app runs on (if applicable)
 EXPOSE 8000
