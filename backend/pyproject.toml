@@ -16,6 +16,8 @@ pydantic-settings = "^2.6.0"
 xmltodict = "^0.14.2"
 
 [tool.poetry.group.dev.dependencies]
+types-xmltodict = "^0.14.0.20241009"
+types-cachetools = "^5.5.0.20240820"
 
 
 [build-system]

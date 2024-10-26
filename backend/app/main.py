@@ -112,20 +112,29 @@ async def get_store_stock(store_id: str) -> Response[list[Stock]]:
         print(e, file=sys.stderr)
 
     try:
-        stockable_products = await family_mart.get_store_detail(store_id=store_id)
+        store = await family_mart.get_store_detail(store_id=store_id)
 
-        for sp in stockable_products:
-            stocks.append(
-                Stock(
-                    name=sp.name,
-                    quantity=sp.qty,
-                    category_id=sp.sub_category_code,
-                    category_name=sp.sub_category_name,
-                )
-            )
+        if not store:
+            raise HTTPException(status_code=404, detail="Item not found")
+
+        for category in store.info:
+            for sub_category in category.categories:
+                for product in sub_category.products:
+                    if not product.qty:
+                        continue
+
+                    stocks.append(
+                        Stock(
+                            name=product.name,
+                            quantity=product.qty,
+                            category_id=category.code,
+                            category_name=category.name,
+                        )
+                    )
+
     except Exception as e:
         print(e, file=sys.stderr)
 
-    # @todo: background. save the stock information to the database
-
     return Response(data=stocks)
+
+    # @todo: background. save the stock information to the database

@@ -1,7 +1,8 @@
 import aiohttp
-from app.models.geolocation import GeoLocation
-from asyncache import cached
+from asyncache import cached  # type: ignore
 from cachetools import LRUCache
+
+from app.models.geolocation import GeoLocation
 
 from .model import Response, Store
 from .share import PROJECT_CODE
@@ -16,9 +17,7 @@ def key_func(current_location: GeoLocation):
 
 
 @cached(cache=LRUCache(maxsize=128), key=key_func)
-async def get_stores_by_geolocation(
-    current_location: GeoLocation
-) -> list[Store]:
+async def get_stores_by_geolocation(current_location: GeoLocation) -> list[Store]:
     """
     get stores by geolocation 取得門市清單 (從經緯度)
 
@@ -31,7 +30,7 @@ async def get_stores_by_geolocation(
             json={
                 "ProjectCode": PROJECT_CODE,
                 "latitude": current_location["latitude"],
-                "longitude": current_location["longitude"]
+                "longitude": current_location["longitude"],
             },
         ) as response:
 
@@ -40,19 +39,3 @@ async def get_stores_by_geolocation(
             res = Response[list[Store]].model_validate(response_json)
 
             return res.data
-
-# python -m app.data_sources.family_mart.get_stores_by_geolocation
-if __name__ == '__main__':
-    import asyncio
-    from pydantic import TypeAdapter
-    from pprint import pprint
-
-
-    async def main():
-        loc = TypeAdapter(GeoLocation).validate_python(
-            {"latitude": 25.035, "longitude": 121.5576 }
-        )
-        stores = await get_stores_by_geolocation(loc)
-        pprint(stores)
-
-    asyncio.run(main())

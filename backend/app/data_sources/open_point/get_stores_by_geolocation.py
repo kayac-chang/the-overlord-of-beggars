@@ -1,7 +1,8 @@
 import aiohttp
-from app.models.geolocation import GeoLocation
-from asyncache import cached
+from asyncache import cached  # type: ignore
 from cachetools import LRUCache
+
+from app.models.geolocation import GeoLocation
 
 from .model import Response, Store
 from .share import USER_AGENT

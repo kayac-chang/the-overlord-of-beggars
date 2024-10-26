@@ -1,6 +1,6 @@
 from typing import List
 
-from geopy import distance
+from geopy import distance  # type: ignore
 
 from app.data_sources import family_mart
 from app.models.geolocation import GeoLocation
@@ -29,6 +29,7 @@ class FamilyMartStoreSearchService(StoreSearchService):
             # append the store information to the list
             stores.append(
                 Store(
+                    brand="FamilyMart",
                     id=_store.store_no,
                     name=_store.store_name,
                     address=_store.address,

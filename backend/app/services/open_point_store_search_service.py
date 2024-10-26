@@ -1,6 +1,6 @@
 from typing import List
 
-from geopy import distance
+from geopy import distance  # type: ignore
 
 from app.data_sources.open_point.get_access_token import get_access_token
 from app.data_sources.open_point.get_store_by_store_id import get_store_by_store_id
@@ -37,6 +37,7 @@ class OpenPointStoreSearchService(StoreSearchService):
                 continue
 
             store = Store(
+                brand="7-11",
                 id=_store.store_no,
                 name=_store.store_name,
                 address=_store.address,
@@ -67,6 +68,7 @@ class OpenPointStoreSearchService(StoreSearchService):
                 continue
 
             store = Store(
+                brand="7-11",
                 id=_store.store_no,
                 name=_store.store_name,
                 address=_store.address,
@@ -99,6 +101,7 @@ class OpenPointStoreSearchService(StoreSearchService):
             # append the store information to the list
             stores.append(
                 Store(
+                    brand="7-11",
                     id=_store.store_no,
                     name=_store.store_name,
                     address=_store.address,
@@ -122,6 +125,7 @@ class OpenPointStoreSearchService(StoreSearchService):
             return None
 
         return Store(
+            brand="7-11",
             id=_store.poi_id,
             name=_store.poi_name,
             address=_store.address,

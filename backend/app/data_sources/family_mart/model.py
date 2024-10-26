@@ -28,12 +28,14 @@ class ItemCategoryWithoutQty(BaseModel):
     icon_url: str = Field(alias="iconURL", description="商品分類圖片")
     categories: list[SubItemCategoryWithoutQty] = Field()
 
+
 class ProductWithSubCategory(BaseModel):
     code: str = Field(description="商品編號")
     name: str = Field(description="商品名稱")
     qty: int | None = Field(description="商品庫存數量")
     sub_category_code: str = Field(description="商品子分類編號")
     sub_category_name: str = Field(description="商品子分類名稱")
+
 
 class Product(BaseModel):
     code: str = Field(description="商品編號")
@@ -63,10 +65,12 @@ class Store(BaseModel):
     longitude: float = Field(validation_alias="longitude", description="門市經度")
     address: str = Field(validation_alias="address", description="門市地址")
     distance: float = Field(validation_alias="distance", description="與用戶的距離")
-    updated_at: str = Field(validation_alias="updateDate", description="ISO8601, 門市即期品更新時間")
+    updated_at: str = Field(
+        validation_alias="updateDate", description="ISO8601, 門市即期品更新時間"
+    )
     info: list[ItemCategory] = Field()
 
-    @computed_field
+    @computed_field  # type: ignore[misc]
     @property
     def has_stock(self) -> bool:
         for category in self.info:

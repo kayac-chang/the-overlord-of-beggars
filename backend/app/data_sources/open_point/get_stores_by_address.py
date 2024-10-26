@@ -1,5 +1,5 @@
 import aiohttp
-from asyncache import cached
+from asyncache import cached  # type: ignore
 from cachetools import LRUCache
 
 from .model import Response, Store
