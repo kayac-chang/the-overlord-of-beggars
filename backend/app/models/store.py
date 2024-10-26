@@ -1,6 +1,6 @@
-from typing import Literal
-
 from pydantic import BaseModel
+
+from .brand import Brand
 
 
 class Store(BaseModel):
@@ -10,4 +10,4 @@ class Store(BaseModel):
     latitude: float
     longitude: float
     distance: float | None = None
-    brand: Literal["7-11", "FamilyMart"]
+    brand: Brand
