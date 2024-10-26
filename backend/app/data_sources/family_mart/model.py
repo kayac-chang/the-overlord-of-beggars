@@ -1,8 +1,17 @@
+import unicodedata
 from typing import Generic, TypeVar
+from typing_extensions import Annotated
 
-from pydantic import BaseModel, Field, computed_field
+from pydantic import BaseModel, Field, computed_field, AfterValidator
 
 T = TypeVar("T")
+
+
+def fWidth2hWidth(source: str):
+    return unicodedata.normalize("NFKC", source)
+
+
+CustomAddress = Annotated[str, AfterValidator(fWidth2hWidth)]
 
 
 class Response(BaseModel, Generic[T]):
@@ -63,7 +72,7 @@ class Store(BaseModel):
     store_name: str = Field(validation_alias="name", description="門市名稱")
     latitude: float = Field(validation_alias="latitude", description="門市緯度")
     longitude: float = Field(validation_alias="longitude", description="門市經度")
-    address: str = Field(validation_alias="address", description="門市地址")
+    address: CustomAddress = Field(validation_alias="address", description="門市地址")
     distance: float = Field(validation_alias="distance", description="與用戶的距離")
     updated_at: str = Field(
         validation_alias="updateDate", description="ISO8601, 門市即期品更新時間"
