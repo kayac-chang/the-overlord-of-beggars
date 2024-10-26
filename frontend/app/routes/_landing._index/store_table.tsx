@@ -1,4 +1,4 @@
-import { useLoaderData } from "@remix-run/react";
+import { Form, useLoaderData } from "@remix-run/react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -19,6 +19,7 @@ import { Toggle } from "~/components/ui/toggle";
 import { Store } from "~/models/store";
 import { clientLoader } from "./route";
 import { LoaderCircle } from "lucide-react";
+import { match } from "ts-pattern";
 
 type ExpandButtonProps = {
   value: string;
@@ -33,34 +34,64 @@ function ExpandButton(props: ExpandButtonProps) {
   // 展開點下去瞬間 icon 要變成 loading
   if (props.pressed && hasLoaded) {
     return (
-      <Toggle
-        type="submit"
-        defaultPressed={props.pressed}
-        onPressedChange={props.onPressedChange}
-        className="group"
-      >
-        <span className="group-data-[state=off]:hidden">👇</span>
-        <span className="group-data-[state=on]:hidden">
-          <LoaderCircle className="size-4 animate-spin" />
-        </span>
-      </Toggle>
+      <Form preventScrollReset>
+        <Toggle
+          type="submit"
+          defaultPressed={props.pressed}
+          onPressedChange={props.onPressedChange}
+          className="group"
+        >
+          <span className="group-data-[state=off]:hidden">👇</span>
+          <span className="group-data-[state=on]:hidden">
+            <LoaderCircle className="size-4 animate-spin" />
+          </span>
+        </Toggle>
+
+        {data?.query.location && (
+          <input type="hidden" name="location" value={data.query.location} />
+        )}
+        {data?.query.keyword && (
+          <input type="hidden" name="keyword" value={data.query.keyword} />
+        )}
+        {data?.query.stores &&
+          data.query.stores
+            .filter((store) => store !== props.value)
+            .map((store) => (
+              <input key={store} type="hidden" name="stores" value={store} />
+            ))}
+      </Form>
     );
   }
 
   return (
-    <Toggle
-      type="submit"
-      defaultPressed={props.pressed}
-      onPressedChange={props.onPressedChange}
-      name="stores"
-      value={props.value}
-      className="group"
-    >
-      <span className="group-data-[state=on]:hidden">👉</span>
-      <span className="group-data-[state=off]:hidden">
-        <LoaderCircle className="size-4 animate-spin" />
-      </span>
-    </Toggle>
+    <Form preventScrollReset>
+      <Toggle
+        type="submit"
+        defaultPressed={props.pressed}
+        onPressedChange={props.onPressedChange}
+        name="stores"
+        value={props.value}
+        className="group"
+      >
+        <span className="group-data-[state=on]:hidden">👉</span>
+        <span className="group-data-[state=off]:hidden">
+          <LoaderCircle className="size-4 animate-spin" />
+        </span>
+      </Toggle>
+
+      {data?.query.location && (
+        <input type="hidden" name="location" value={data.query.location} />
+      )}
+      {data?.query.keyword && (
+        <input type="hidden" name="keyword" value={data.query.keyword} />
+      )}
+      {data?.query.stores &&
+        data.query.stores
+          .filter((store) => store !== props.value)
+          .map((store) => (
+            <input key={store} type="hidden" name="stores" value={store} />
+          ))}
+    </Form>
   );
 }
 
@@ -78,6 +109,14 @@ const columns = [
           value={props.row.id}
         />
       ),
+  }),
+  helper.accessor("brand", {
+    header: "廠商",
+    cell: (props) =>
+      match(props.getValue())
+        .with("7-11", () => "7-11")
+        .with("FamilyMart", () => "全家")
+        .exhaustive(),
   }),
   helper.accessor("name", { header: "店名" }),
   helper.accessor("address", { header: "地址" }),
@@ -99,7 +138,7 @@ const columns = [
 
 type Props = ComponentProps<typeof Table> & {
   data: Store[];
-  expanded?: Store["id"];
+  expanded?: Store["id"][];
   renderSubComponent?: (data: Store) => ReactNode;
 };
 function StoreTable({ data, renderSubComponent, expanded, ...props }: Props) {
@@ -111,11 +150,9 @@ function StoreTable({ data, renderSubComponent, expanded, ...props }: Props) {
     getRowId: (row) => row.id,
     getRowCanExpand: () => true,
     state: {
-      expanded: expanded
-        ? {
-            [expanded]: true,
-          }
-        : undefined,
+      expanded: expanded?.reduce((acc, id) => {
+        return { ...acc, [id]: true };
+      }, {} as Record<string, boolean>),
     },
   });
 

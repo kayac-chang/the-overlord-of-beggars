@@ -5,33 +5,31 @@ import {
 } from "~/models/geolocation";
 import { Store, StoreSchema } from "~/models/store";
 import { ResponseSchema, api } from "./shared";
-import { P, match } from "ts-pattern";
+import { SUPPORT_BRANDS } from "~/models/brand";
 
 const InputSchema = z.object({
   keyword: z.string().nullish(),
   location: GeoLocationSchema.nullish(),
+  brands: z.array(z.enum(SUPPORT_BRANDS)).nullish(),
 });
 
 type Input = z.infer<typeof InputSchema>;
 
 async function searchStores(input: Input): Promise<Store[]> {
   return InputSchema.parseAsync(input)
-    .then((input) =>
-      match(input)
-        .with({ keyword: P.nonNullable, location: P.nonNullable }, (input) => ({
-          keyword: input.keyword,
-          location: toGeoString(input.location),
-        }))
-        .with({ keyword: P.nonNullable }, (input) => ({
-          keyword: input.keyword,
-        }))
-        .with({ location: P.nonNullable }, (input) => ({
-          location: toGeoString(input.location),
-        }))
-        .otherwise(() => {
-          throw new Error("Invalid input");
-        })
-    )
+    .then((input) => {
+      const searchParams = new URLSearchParams();
+      if (input.keyword) {
+        searchParams.append("keyword", input.keyword);
+      }
+      if (input.location) {
+        searchParams.append("location", toGeoString(input.location));
+      }
+      if (input.brands) {
+        input.brands.forEach((brand) => searchParams.append("brands", brand));
+      }
+      return searchParams;
+    })
     .then((searchParams) => api.get("stores", { searchParams }).json())
     .then(ResponseSchema(z.array(StoreSchema)).parseAsync)
     .then(({ data }) => data);
