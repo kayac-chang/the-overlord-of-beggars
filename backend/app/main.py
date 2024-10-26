@@ -1,36 +1,40 @@
-from typing import Annotated
 import sys
+from typing import Annotated
 
-from fastapi import FastAPI, Path, Query, Request
+from fastapi import FastAPI, Query
+from fastapi.exceptions import HTTPException
 from pydantic import TypeAdapter
 
 from .config import settings
+from .data_sources import family_mart
 from .data_sources.open_point.get_access_token import get_access_token
 from .data_sources.open_point.get_store_detail import get_store_detail
-from .data_sources import family_mart
 from .models.geolocation import GeoLocation
 from .models.response import Response
 from .models.stock import Stock
 from .models.store import Store
-from .services.open_point_store_search_service import OpenPointStoreSearchService
 from .services.family_mart_store_search_service import FamilyMartStoreSearchService
+from .services.open_point_store_search_service import OpenPointStoreSearchService
 from .services.store_search_reducer import reducer
+from .services.store_search_service import StoreSearchService
 
 app = FastAPI()
 
 # add your store search services here
-store_search_services = [
+store_search_services: list[StoreSearchService] = [
     OpenPointStoreSearchService(settings.OPEN_POINT_MID_V),
-    FamilyMartStoreSearchService()
+    FamilyMartStoreSearchService(),
+]
+
+Location = Annotated[
+    str | None,
+    Query(description="經緯度座標", regex=r"^-?\d+\.\d+,-?\d+\.\d+$"),
 ]
 
 
 @app.get("/stores")
 async def get_stores(
-    location: Annotated[
-        str | None,
-        Query(description="經緯度座標", regex=r"^-?\d+\.\d+,-?\d+\.\d+$"),
-    ] = None,
+    location: Location = None,
     keyword: Annotated[str | None, Query(description="關鍵字")] = None,
 ) -> Response[list[Store]]:
     """
@@ -49,6 +53,34 @@ async def get_stores(
     return Response(data=stores)
 
     # @todo: background. save the stores to the database
+
+
+@app.get("/stores/{store_id}")
+async def get_store(
+    store_id: str,
+    location: Location = None,
+) -> Response[Store]:
+
+    loc = None
+    if location:
+        [latitude, longitude] = location.split(",")
+        loc = TypeAdapter(GeoLocation).validate_python(
+            {"latitude": latitude, "longitude": longitude}
+        )
+
+    # search the store by store id from data sources
+    for service in store_search_services:
+        if loc:
+            store = await service.get_store_by_store_id_and_location(
+                id=store_id, location=loc
+            )
+        else:
+            store = await service.get_store_by_store_id(id=store_id)
+
+        if store:
+            return Response(data=store)
+
+    raise HTTPException(status_code=404, detail="Item not found")
 
 
 @app.get("/stores/{store_id}/stock")

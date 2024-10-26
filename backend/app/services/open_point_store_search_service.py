@@ -3,6 +3,7 @@ from typing import List
 from geopy import distance
 
 from app.data_sources.open_point.get_access_token import get_access_token
+from app.data_sources.open_point.get_store_by_store_id import get_store_by_store_id
 from app.data_sources.open_point.get_stores_by_address import get_stores_by_address
 from app.data_sources.open_point.get_stores_by_geolocation import (
     get_stores_by_geolocation,
@@ -111,3 +112,40 @@ class OpenPointStoreSearchService(StoreSearchService):
             )
 
         return stores
+
+    async def get_store_by_store_id(self, id: str) -> Store | None:
+        # get the store by store id from data sources
+        _store = await get_store_by_store_id(id)
+
+        # if the store is not found, return None
+        if _store is None:
+            return None
+
+        return Store(
+            id=_store.poi_id,
+            name=_store.poi_name,
+            address=_store.address,
+            latitude=_store.latitude,
+            longitude=_store.longitude,
+        )
+
+    async def get_store_by_store_id_and_location(
+        self, id: str, location: GeoLocation
+    ) -> Store | None:
+        # get the store by store id from data sources
+        _store = await self.get_store_by_store_id(id)
+
+        # if the store is not found, return None
+        if _store is None:
+            return None
+
+        # clone one to avoid changing the original store
+        store = Store.model_validate(_store)
+
+        # calculate the distance between the store and the user
+        store.distance = distance.distance(
+            (store.latitude, store.longitude),
+            (location["latitude"], location["longitude"]),
+        ).m
+
+        return store
