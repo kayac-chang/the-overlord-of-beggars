@@ -1,10 +1,17 @@
+import unicodedata
 from typing import Generic, TypeVar
+from typing_extensions import Annotated
 
-from pydantic import BaseModel, Field, computed_field
-
-from app.data_sources.custom_types import CustomAddress
+from pydantic import BaseModel, Field, computed_field, AfterValidator
 
 T = TypeVar("T")
+
+
+def fWidth2hWidth(source: str):
+    return unicodedata.normalize("NFKC", source)
+
+
+CustomAddress = Annotated[str, AfterValidator(fWidth2hWidth)]
 
 
 class Response(BaseModel, Generic[T]):
