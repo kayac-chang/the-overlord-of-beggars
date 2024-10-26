@@ -1,6 +1,7 @@
 import aiohttp
-from app.models.geolocation import GeoLocation
 from pydantic import BaseModel, Field
+
+from app.models.geolocation import GeoLocation
 
 from .model import Response
 from .share import USER_AGENT

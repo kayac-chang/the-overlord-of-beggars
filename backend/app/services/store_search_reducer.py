@@ -1,5 +1,4 @@
 from typing import Sequence
-import sys
 
 from app.models.geolocation import GeoLocation
 from app.models.store import Store
@@ -54,7 +53,7 @@ async def reducer(
     services: Sequence[StoreSearchService],
     keyword: str | None,
     loc: GeoLocation | None,
-):
+) -> list[Store]:
     stores = []
 
     # todo: run the map function in parallel (multiprocessing)
