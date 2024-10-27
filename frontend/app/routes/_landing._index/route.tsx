@@ -1,25 +1,16 @@
-import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
-import {
-  ClientLoaderFunctionArgs,
-  Form,
-  redirect,
-  replace,
-  useLoaderData,
-} from "@remix-run/react";
-import searchStores from "~/services/search_stores";
+import type { MetaFunction } from "@remix-run/node";
+import { Form, Link, useLoaderData } from "@remix-run/react";
 import StoreTable from "./store_table";
 import NearExpiredFoodTable from "./near_expired_food_table";
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
 import { Toggle } from "~/components/ui/toggle";
-import { coerceToArray, makeSearchParamsObjSchema } from "~/lib/utils";
-import { z } from "zod";
-import pProps from "p-props";
-import { P, match } from "ts-pattern";
-import { LocateFixed, Locate } from "lucide-react";
-import { toString as toGeoString } from "~/models/geolocation";
-import getNearExpiredFoodsByStoreId from "~/services/get_near_expired_foods_by_store_id";
-import { SUPPORT_BRANDS } from "~/models/brand";
+import { LocateFixed, Locate, Bookmark } from "lucide-react";
+import { clientLoader } from "./client_loader";
+
+export { loader } from "./loader";
+export { clientLoader } from "./client_loader";
+export { action } from "./action";
 
 export const meta: MetaFunction = () => {
   return [
@@ -27,120 +18,6 @@ export const meta: MetaFunction = () => {
     //
   ];
 };
-
-const QuerySchema = makeSearchParamsObjSchema(
-  z.object({
-    location: z.string().nullish(),
-    keyword: z.string().nullish(),
-    brands: z.array(z.enum(SUPPORT_BRANDS)).nullish(),
-    stores: coerceToArray(z.array(z.string())).nullish(),
-  })
-);
-
-export async function loader(args: LoaderFunctionArgs) {
-  const query = await QuerySchema.parseAsync(
-    new URL(args.request.url).searchParams
-  );
-
-  const stores = await match(query)
-    // 關鍵字 + 經緯度 搜尋附近的店家
-    .with(
-      {
-        keyword: P.string.minLength(1),
-        location: P.string.regex(/^\d+\.\d+,\d+\.\d+$/),
-      },
-      (query) => {
-        const [latitude, longitude] = query.location.split(",").map(Number);
-        return searchStores({
-          keyword: query.keyword,
-          location: { latitude, longitude },
-          brands: query.brands,
-        });
-      }
-    )
-
-    // 關鍵字 搜尋附近的店家
-    .with({ keyword: P.string.minLength(1) }, (query) => {
-      return searchStores({ keyword: query.keyword, brands: query.brands });
-    })
-
-    // 經緯度 搜尋附近的店家
-    .with(
-      {
-        location: P.string.regex(/^\d+\.\d+,\d+\.\d+$/),
-      },
-      (query) => {
-        const [latitude, longitude] = query.location.split(",").map(Number);
-        return searchStores({
-          location: { latitude, longitude },
-          brands: query.brands,
-        });
-      }
-    )
-
-    // if neither keyword nor location is provided,
-    // we'll just display the default page
-    .otherwise(() => {
-      return null;
-    });
-
-  const storesWithNearExpiredFoods = query.stores
-    ?.map((id) => stores?.find((store) => store.id === id))
-    .filter((store) => store !== undefined)
-    .map((store) =>
-      getNearExpiredFoodsByStoreId({
-        storeid: store.id,
-        brand: store.brand,
-      })
-        //
-        .then((foods) => ({
-          storeId: store.id,
-          foods,
-        }))
-    );
-
-  return pProps({
-    query,
-    stores,
-    storesWithNearExpiredFoods: storesWithNearExpiredFoods
-      ? Promise.all(storesWithNearExpiredFoods)
-      : undefined,
-  });
-}
-
-export function clientLoader(args: ClientLoaderFunctionArgs) {
-  const url = new URL(args.request.url);
-
-  const query = QuerySchema.parse(url.searchParams);
-
-  return match(query)
-    .with({ keyword: "" }, () => {
-      url.searchParams.delete("keyword");
-      return replace(url.toString());
-    })
-    .with({ stores: [] }, () => {
-      url.searchParams.delete("stores");
-      return replace(url.toString());
-    })
-    .with({ location: "" }, () =>
-      new Promise<GeolocationPosition>((resolve, reject) =>
-        navigator.geolocation.getCurrentPosition(resolve, reject)
-      )
-        .then((position) => {
-          const location = toGeoString({
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-          });
-          url.searchParams.set("location", location);
-          return replace(url.toString());
-        })
-        .catch(() => {
-          url.searchParams.delete("location");
-          return redirect(url.toString());
-        })
-    )
-    .otherwise(() => args.serverLoader<typeof loader>());
-}
 
 function LocateToggle() {
   const data = useLoaderData<typeof clientLoader>();
@@ -201,18 +78,25 @@ export default function Index() {
             <input type="hidden" name="keyword" value={data.query.keyword} />
           )}
         </Form>
+
+        <Button variant="secondary" asChild>
+          <Link to="/">
+            <Bookmark />
+            <span>已收藏 {data?.query.bookmarks.length ?? 0}</span>
+          </Link>
+        </Button>
       </div>
 
       {/* display the nearby stores and their near expired foods */}
       <StoreTable
         className="mt-4"
-        data={data.stores ?? []}
+        data={data?.stores.filter((store) => store !== null) ?? []}
         expanded={data?.query.stores ?? undefined}
         renderSubComponent={(store) => {
           const found = data?.storesWithNearExpiredFoods?.find(
-            (item) => item.storeId === store.id
+            (item) => item.storeid === store.id
           );
-          return <NearExpiredFoodTable data={found?.foods ?? []} />;
+          return <NearExpiredFoodTable data={found?.nearExpiredFoods ?? []} />;
         }}
       />
     </div>

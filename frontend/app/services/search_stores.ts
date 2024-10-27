@@ -34,5 +34,4 @@ async function searchStores(input: Input): Promise<Store[]> {
     .then(ResponseSchema(z.array(StoreSchema)).parseAsync)
     .then(({ data }) => data);
 }
-
 export default searchStores;

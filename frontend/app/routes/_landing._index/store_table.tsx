@@ -15,18 +15,24 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "~/components/ui/tooltip";
 import { Toggle } from "~/components/ui/toggle";
 import { Store } from "~/models/store";
 import { clientLoader } from "./route";
-import { LoaderCircle } from "lucide-react";
+import { LoaderCircle, Bookmark, BookmarkCheck } from "lucide-react";
 import { match } from "ts-pattern";
+import { Button } from "~/components/ui/button";
 
 type ExpandButtonProps = {
   value: string;
   pressed: boolean;
   onPressedChange: () => void;
 };
-
 function ExpandButton(props: ExpandButtonProps) {
   const data = useLoaderData<typeof clientLoader>();
   const hasLoaded = Boolean(data?.storesWithNearExpiredFoods);
@@ -95,6 +101,59 @@ function ExpandButton(props: ExpandButtonProps) {
   );
 }
 
+function BookmarkButton(props: Store) {
+  const data = useLoaderData<typeof clientLoader>();
+  const hasBooked = data?.query.bookmarks?.some(
+    (bookmark) => bookmark.storeid === props.id
+  );
+
+  if (props.brand === "FamilyMart") {
+    return null;
+  }
+
+  if (!hasBooked && data?.query.bookmarks?.length === 10) {
+    return (
+      <Tooltip delayDuration={300}>
+        <Button
+          variant="outline"
+          size="icon"
+          disabled
+          className="!pointer-events-auto"
+          asChild
+        >
+          <TooltipTrigger>
+            <Bookmark />
+          </TooltipTrigger>
+        </Button>
+        <TooltipContent>
+          <p>關注上限 10 家</p>
+        </TooltipContent>
+      </Tooltip>
+    );
+  }
+
+  return (
+    <Form method="post" preventScrollReset>
+      <Toggle
+        type="submit"
+        className="group"
+        pressed={hasBooked}
+        name={hasBooked ? "unsubscribe" : "subscribe"}
+        value={props.id}
+      >
+        <span className="group-data-[state=on]:hidden">
+          <Bookmark className="size-4" />
+        </span>
+        <span className="group-data-[state=off]:hidden">
+          <BookmarkCheck className="size-4" />
+        </span>
+      </Toggle>
+
+      <input type="hidden" name="brand" value={props.brand} />
+    </Form>
+  );
+}
+
 const helper = createColumnHelper<Store>();
 
 const columns = [
@@ -133,6 +192,10 @@ const columns = [
         maximumFractionDigits: 0,
       }).format(value);
     },
+  }),
+  helper.display({
+    id: "bookmark",
+    cell: (props) => <BookmarkButton {...props.row.original} />,
   }),
 ];
 
@@ -196,10 +259,12 @@ function StoreTable({ data, renderSubComponent, expanded, ...props }: Props) {
   );
 
   return (
-    <Table {...props}>
-      {head}
-      {body}
-    </Table>
+    <TooltipProvider>
+      <Table {...props}>
+        {head}
+        {body}
+      </Table>
+    </TooltipProvider>
   );
 }
 
