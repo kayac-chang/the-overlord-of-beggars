@@ -1,13 +1,11 @@
 # 7-11 (舊版門市搜尋)
 
-## Get Town By City ID 透過城市編號取得行政區
+## Get Towns By City ID 透過城市編號取得行政區
 
 ```sh
 commandid=GetTown
 cityid=01
-curl 'https://emap.pcsc.com.tw/EMapSDK.aspx' \
-  -H 'Content-Type: application/x-www-form-urlencoded; charset=UTF-8' \
-  --data-raw "commandid=$commandid&cityid=$cityid" | xmllint --format -
+curl "https://emap.pcsc.com.tw/EMapSDK.aspx?commandid=$commandid&cityid=$cityid" | xmllint --format -
 ```
 
 ```
@@ -51,7 +49,7 @@ iMapSDKOutput {
 金門縣: 25
 ```
 
-## Search Store By City And Town 透過行政區取得門市資訊
+## Get Stores By City And Town 透過行政區取得門市資訊
 
 ```sh
 commandid=SearchStore
@@ -59,9 +57,7 @@ city=台北市
 town=松山區
 encoded_city=$(printf $city | jq -sRr @uri)
 encoded_town=$(printf $town | jq -sRr @uri)
-curl 'https://emap.pcsc.com.tw/EMapSDK.aspx' \
-  -H 'Content-Type: application/x-www-form-urlencoded; charset=UTF-8' \
-  --data-raw "commandid=$commandid&city=$encoded_city&town=$encoded_town" | xmllint --format -
+curl "https://emap.pcsc.com.tw/EMapSDK.aspx?commandid=$commandid&city=$encoded_city&town=$encoded_town" | xmllint --format -
 ```
 
 ```
