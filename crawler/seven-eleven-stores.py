@@ -1,71 +1,8 @@
-from typing import Generic, TypeVar
-
 import aiohttp
-import xmltodict
-from pydantic import BaseModel, Field, field_validator
 
-T = TypeVar("T")
-
-
-class Response(BaseModel, Generic[T]):
-    MessageID: str
-    CommandID: str
-    Status: str
-    TimeStamp: str
-    GeoPosition: T | None
-
-
-class Town(BaseModel):
-    town_id: str = Field(alias="TownID", description="行政區編號")
-    town_name: str = Field(alias="TownName", description="行政區名稱")
-    longitude: float = Field(alias="X", description="經度")
-    latitude: float = Field(alias="Y", description="緯度")
-
-    @field_validator("longitude", "latitude")
-    @classmethod
-    def convert_to_float(cls, v: int) -> float:
-        return v / 1_000_000
-
-
-async def get_towns_by_city_id(city_id: str) -> list[Town] | None:
-    """
-    get town by city id 透過城市編號取得行政區
-
-    POST https://emap.pcsc.com.tw/EMapSDK.aspx
-    content-type: application/x-www-form-urlencoded; charset=utf-8
-    """
-
-    async with aiohttp.ClientSession() as session:
-        async with session.post(
-            f"https://emap.pcsc.com.tw/EMapSDK.aspx",
-            data={"commandid": "GetTown", "cityid": city_id},
-        ) as response:
-            response_xml_str = await response.text()
-            response_dict = xmltodict.parse(response_xml_str)
-
-            if not "GeoPosition" in response_dict["iMapSDKOutput"]:
-                return None
-
-            return Response[list[Town]](**response_dict["iMapSDKOutput"]).GeoPosition
-
-
-async def get_stores_by_city_and_town(city: str, town: str):
-    """
-    get stores by city and town 透過行政區取得門市資訊
-
-    POST https://emap.pcsc.com.tw/EMapSDK.aspx
-    content-type: application/x-www-form-urlencoded; charset=utf-8
-    """
-
-    async with aiohttp.ClientSession() as session:
-        async with session.post(
-            f"https://emap.pcsc.com.tw/EMapSDK.aspx",
-            data={"commandid": "SearchStore", "city": city, "town": town},
-        ) as response:
-            response_xml_str = await response.text()
-            response_dict = xmltodict.parse(response_xml_str)
-            return response_dict
-
+from get_stores_by_city_and_town import get_stores_by_city_and_town
+from get_towns_by_city_id import get_towns_by_city_id
+from utils import flatten
 
 list_of_city = [
     {"city_id": "01", "city_name": "台北市"},
@@ -93,13 +30,50 @@ list_of_city = [
 ]
 
 
+async def main():
+    async with aiohttp.ClientSession() as session:
+
+        # 1. 取得所有城市的行政區
+        async def fn1(city):
+            towns = await get_towns_by_city_id(session, city["city_id"])
+
+            if not towns:
+                return []
+
+            return [city | town.model_dump() for town in towns]
+
+        tasks = [fn1(city) for city in list_of_city]
+
+        towns = await asyncio.gather(*tasks)
+
+        towns = list(flatten(towns))
+
+        # 2. 取得所有行政區的7-11門市
+        async def fn2(town):
+            stores = await get_stores_by_city_and_town(
+                session, city=town["city_name"], town=town["town_name"]
+            )
+
+            if not stores:
+                return []
+
+            if not isinstance(stores, list):
+                return [town | stores.model_dump()]
+
+            return [town | store.model_dump() for store in stores]
+
+        tasks = [fn2(town) for town in towns]
+
+        stores = await asyncio.gather(*tasks)
+
+        stores = list(flatten(stores))
+
+        # @todo 寫入資料庫
+
+    pass
+
+
 if __name__ == "__main__":
     import asyncio
 
-    async def main():
-        # batch request to get all towns by city id, 5 requests concurrently
-        tasks = [get_towns_by_city_id(city["city_id"]) for city in list_of_city]
-
-        results = []
-        for i in range(0, len(tasks), 5):
-            results += await asyncio.gather(*tasks[i : i + 5])
+    asyncio.run(main())
