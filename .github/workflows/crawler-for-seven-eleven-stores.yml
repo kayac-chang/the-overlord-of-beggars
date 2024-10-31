@@ -26,4 +26,6 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Execute Python script
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: python seven-eleven-stores.py
