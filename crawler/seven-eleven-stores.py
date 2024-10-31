@@ -1,7 +1,10 @@
 import aiohttp
-
+import psycopg
+from config import settings
 from get_stores_by_city_and_town import get_stores_by_city_and_town
 from get_towns_by_city_id import get_towns_by_city_id
+from psycopg import sql
+from tqdm import tqdm
 from utils import flatten
 
 list_of_city = [
@@ -30,10 +33,36 @@ list_of_city = [
 ]
 
 
+init_sql = sql.SQL(
+    """
+-- enable the PostGIS extension (if not already enabled)
+CREATE EXTENSION IF NOT EXISTS postgis;
+
+-- Create the stores table (if it does not already exist)
+CREATE TABLE IF NOT EXISTS stores (
+    store_id VARCHAR(6) PRIMARY KEY,
+    store_name VARCHAR(255) NOT NULL,
+    address TEXT NOT NULL,
+    coordinates GEOGRAPHY(Point) NOT NULL
+);
+"""
+)
+
+upsert_stores = sql.SQL(
+    """
+INSERT INTO stores (store_id, store_name, address, coordinates)
+VALUES (%(store_id)s, %(store_name)s, %(address)s, ST_SetSRID(ST_MakePoint(%(longitude)s, %(latitude)s), 4326))
+ON CONFLICT (store_id) DO UPDATE
+SET store_name = EXCLUDED.store_name, address = EXCLUDED.address, coordinates = EXCLUDED.coordinates;
+"""
+)
+
+
 async def main():
     async with aiohttp.ClientSession() as session:
 
-        # 1. 取得所有城市的行政區
+        print("取得所有城市的行政區...")
+
         async def fn1(city):
             towns = await get_towns_by_city_id(session, city["city_id"])
 
@@ -44,11 +73,16 @@ async def main():
 
         tasks = [fn1(city) for city in list_of_city]
 
-        towns = await asyncio.gather(*tasks)
+        towns = []
+        for i in tqdm(range(0, len(tasks), 10)):
+            towns += await asyncio.gather(*tasks[i : i + 10])
 
         towns = list(flatten(towns))
 
-        # 2. 取得所有行政區的7-11門市
+        # =================================================
+
+        print("取得所有行政區的7-11門市...")
+
         async def fn2(town):
             stores = await get_stores_by_city_and_town(
                 session, city=town["city_name"], town=town["town_name"]
@@ -64,13 +98,27 @@ async def main():
 
         tasks = [fn2(town) for town in towns]
 
-        stores = await asyncio.gather(*tasks)
+        stores = []
+        for i in tqdm(range(0, len(tasks), 10)):
+            stores += await asyncio.gather(*tasks[i : i + 10])
 
         stores = list(flatten(stores))
 
-        # @todo 寫入資料庫
+        # =================================================
 
-    pass
+        print("寫入資料庫...")
+
+        async with await psycopg.AsyncConnection.connect(settings.DATABASE_URL) as conn:
+            async with conn.cursor() as cur:
+                print("檢查並建立資料表...")
+                await cur.execute(init_sql)
+
+                print("寫入資料...")
+                await cur.executemany(upsert_stores, stores)
+
+                await conn.commit()
+
+        print("腳本完成")
 
 
 if __name__ == "__main__":

@@ -7,8 +7,13 @@ frozenlist==1.5.0
 idna==3.10
 multidict==6.1.0
 propcache==0.2.0
+psycopg==3.2.3
+psycopg-binary==3.2.3
 pydantic==2.9.2
+pydantic-settings==2.6.0
 pydantic_core==2.23.4
+python-dotenv==1.0.1
+tqdm==4.66.6
 typing_extensions==4.12.2
 xmltodict==0.14.2
-yarl==1.17.0
+yarl==1.17.1
