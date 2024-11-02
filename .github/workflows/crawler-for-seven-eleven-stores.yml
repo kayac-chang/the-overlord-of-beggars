@@ -28,4 +28,4 @@ jobs:
       - name: Execute Python script
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: python seven-eleven-stores.py
+        run: python -m seven_eleven.stores_crawler

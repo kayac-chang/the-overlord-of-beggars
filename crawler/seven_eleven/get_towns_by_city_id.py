@@ -1,7 +1,7 @@
 import aiohttp
 import xmltodict
 
-from models import Response, Town
+from .models import Response, Town
 
 
 async def get_towns_by_city_id(
