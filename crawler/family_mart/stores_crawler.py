@@ -4,53 +4,37 @@ from config import settings
 from list_of_city import list_of_city
 from sql import init_sql, upsert_stores
 from tqdm import tqdm
-from utils import flatten
 
-from .get_stores_by_city_and_town import get_stores_by_city_and_town
-from .get_towns_by_city_id import get_towns_by_city_id
+from .get_stores_by_city_and_town import Store, get_stores_by_city_and_town
+from .get_towns_by_city import Town, get_towns_by_city
 
 
 async def main():
+    key = settings.FAMILY_MART_KEY
+
     async with aiohttp.ClientSession() as session:
 
         print("取得所有城市的行政區...")
 
-        async def fn1(city):
-            towns = await get_towns_by_city_id(session, city["city_id"])
-
-            if not towns:
-                return []
-
-            return [city | town.model_dump() for town in towns]
-
-        towns = []
+        towns: list[Town] = []
         for i in tqdm(range(0, len(list_of_city))):
-            towns += await fn1(list_of_city[i])
+            city = list_of_city[i]
 
-        towns = list(flatten(towns))
+            towns += await get_towns_by_city(
+                session=session, key=key, city=city["city_name"]
+            )
 
         # =================================================
 
         print("取得所有行政區的門市...")
 
-        async def fn2(town):
-            stores = await get_stores_by_city_and_town(
-                session, city=town["city_name"], town=town["town_name"]
-            )
-
-            if not stores:
-                return []
-
-            if not isinstance(stores, list):
-                return [town | stores.model_dump()]
-
-            return [town | store.model_dump() for store in stores]
-
-        stores = []
+        stores: list[Store] = []
         for i in tqdm(range(0, len(towns))):
-            stores += await fn2(towns[i])
+            town = towns[i]
 
-        stores = list(flatten(stores))
+            stores += await get_stores_by_city_and_town(
+                session=session, key=key, city=town.city_name, town=town.town_name
+            )
 
         # =================================================
 
@@ -63,7 +47,8 @@ async def main():
 
                 print("寫入資料...")
                 await cur.executemany(
-                    upsert_stores, [store | {"brand": "7-11"} for store in stores]
+                    upsert_stores,
+                    [store.model_dump() | {"brand": "FamilyMart"} for store in stores],
                 )
 
                 await conn.commit()

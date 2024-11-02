@@ -1,10 +1,21 @@
-name: Crawler 7-11
+name: Run Store Crawlers
 
 on:
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      run_option:
+        description: 'Select which crawler to run'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - seven_eleven
+          - family_mart
+          - all
 
 jobs:
-  execute:
+  seven_eleven_crawler:
+    if: ${{ github.event.inputs.run_option == 'seven_eleven' || github.event.inputs.run_option == 'all' }}
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -25,7 +36,37 @@ jobs:
       - name: Install Python dependencies
         run: pip install -r requirements.txt
 
-      - name: Execute Python script
+      - name: Run Seven Eleven Crawler
         env:
+          FAMILY_MART_KEY: ${{ secrets.FAMILY_MART_KEY }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: python -m seven_eleven.stores_crawler
+
+  family_mart_crawler:
+    if: ${{ github.event.inputs.run_option == 'family_mart' || github.event.inputs.run_option == 'all' }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./crawler
+    steps:
+      - name: Cancel Workflow Action
+        uses: styfle/cancel-workflow-action@0.12.1
+
+      - name: Checkout
+        uses: actions/checkout@v4.2.2
+
+      - name: Setup Python
+        uses: actions/setup-python@v5.3.0
+        with:
+          python-version: 3.12
+          cache: 'pip'
+
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Family Mart Crawler
+        env:
+          FAMILY_MART_KEY: ${{ secrets.FAMILY_MART_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: python -m family_mart.stores_crawler
+
