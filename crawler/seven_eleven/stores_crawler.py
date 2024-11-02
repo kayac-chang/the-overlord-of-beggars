@@ -1,11 +1,13 @@
 import aiohttp
 import psycopg
-from config import settings
-from get_stores_by_city_and_town import get_stores_by_city_and_town
-from get_towns_by_city_id import get_towns_by_city_id
 from psycopg import sql
 from tqdm import tqdm
+
+from config import settings
 from utils import flatten
+
+from .get_stores_by_city_and_town import get_stores_by_city_and_town
+from .get_towns_by_city_id import get_towns_by_city_id
 
 list_of_city = [
     {"city_id": "01", "city_name": "台北市"},
