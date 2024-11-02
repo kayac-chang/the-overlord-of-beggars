@@ -42,6 +42,7 @@ jobs:
         run: python -m init
 
   seven_eleven_crawler:
+    needs: initialize
     if: ${{ github.event.inputs.run_option == 'seven_eleven' || github.event.inputs.run_option == 'all' }}
     runs-on: ubuntu-latest
     defaults:
@@ -70,6 +71,7 @@ jobs:
         run: python -m seven_eleven.stores_crawler
 
   family_mart_crawler:
+    needs: initialize
     if: ${{ github.event.inputs.run_option == 'family_mart' || github.event.inputs.run_option == 'all' }}
     runs-on: ubuntu-latest
     defaults:
