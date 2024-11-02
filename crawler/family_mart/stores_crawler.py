@@ -42,15 +42,10 @@ async def main():
 
         async with await psycopg.AsyncConnection.connect(settings.DATABASE_URL) as conn:
             async with conn.cursor() as cur:
-                print("檢查並建立資料表...")
-                await cur.execute(init_sql)
-
-                print("寫入資料...")
                 await cur.executemany(
                     upsert_stores,
                     [store.model_dump() | {"brand": "FamilyMart"} for store in stores],
                 )
-
                 await conn.commit()
 
         print("腳本完成")

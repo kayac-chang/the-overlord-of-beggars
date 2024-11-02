@@ -2,7 +2,7 @@ import aiohttp
 import psycopg
 from config import settings
 from list_of_city import list_of_city
-from sql import init_sql, upsert_stores
+from sql import upsert_stores
 from tqdm import tqdm
 from utils import flatten
 
@@ -58,14 +58,9 @@ async def main():
 
         async with await psycopg.AsyncConnection.connect(settings.DATABASE_URL) as conn:
             async with conn.cursor() as cur:
-                print("檢查並建立資料表...")
-                await cur.execute(init_sql)
-
-                print("寫入資料...")
                 await cur.executemany(
                     upsert_stores, [store | {"brand": "7-11"} for store in stores]
                 )
-
                 await conn.commit()
 
         print("腳本完成")
