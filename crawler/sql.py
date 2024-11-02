@@ -15,6 +15,9 @@ CREATE TABLE IF NOT EXISTS stores (
     -- only have 7-11 and FamilyMart
     brand VARCHAR(10) NOT NULL CHECK (brand IN ('7-11', 'FamilyMart'))
 );
+
+-- Create a GIST index on the coordinates
+CREATE INDEX IF NOT EXISTS idx_stores_coordinates ON stores USING GIST (coordinates);
 """
 )
 
