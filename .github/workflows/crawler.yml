@@ -18,6 +18,12 @@ on:
         default: false
         type: boolean
 
+
+env:
+  FAMILY_MART_KEY: ${{ secrets.FAMILY_MART_KEY }}
+  DATABASE_URL: ${{ secrets.DATABASE_URL }}
+  OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
 jobs:
   initialize:
     runs-on: ubuntu-latest
@@ -41,9 +47,6 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Run Initialization Script
-        env:
-          FAMILY_MART_KEY: ${{ secrets.FAMILY_MART_KEY }}
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: python -m init
 
   seven_eleven_crawler:
@@ -70,9 +73,6 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Run Seven Eleven Crawler
-        env:
-          FAMILY_MART_KEY: ${{ secrets.FAMILY_MART_KEY }}
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: python -m seven_eleven.stores_crawler
 
   family_mart_crawler:
@@ -99,9 +99,6 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Run Family Mart Crawler
-        env:
-          FAMILY_MART_KEY: ${{ secrets.FAMILY_MART_KEY }}
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: python -m family_mart.stores_crawler
 
   embedding:
@@ -125,8 +122,5 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Run Embedding Script
-        env:
-          FAMILY_MART_KEY: ${{ secrets.FAMILY_MART_KEY }}
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: python -m embedding
 
