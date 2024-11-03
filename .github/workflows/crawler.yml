@@ -12,6 +12,11 @@ on:
           - seven_eleven
           - family_mart
           - all
+      run_embedding:
+        description: 'Run embedding job'
+        required: true
+        default: false
+        type: boolean
 
 jobs:
   initialize:
@@ -42,8 +47,8 @@ jobs:
         run: python -m init
 
   seven_eleven_crawler:
-    needs: initialize
     if: ${{ github.event.inputs.run_option == 'seven_eleven' || github.event.inputs.run_option == 'all' }}
+    needs: initialize
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -71,8 +76,8 @@ jobs:
         run: python -m seven_eleven.stores_crawler
 
   family_mart_crawler:
-    needs: initialize
     if: ${{ github.event.inputs.run_option == 'family_mart' || github.event.inputs.run_option == 'all' }}
+    needs: initialize
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -98,4 +103,30 @@ jobs:
           FAMILY_MART_KEY: ${{ secrets.FAMILY_MART_KEY }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: python -m family_mart.stores_crawler
+
+  embedding:
+    if: ${{ github.event.inputs.run_embedding }}
+    needs: [family_mart_crawler, seven_eleven_crawler]
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./crawler
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.2.2
+
+      - name: Setup Python
+        uses: actions/setup-python@v5.3.0
+        with:
+          python-version: 3.12
+          cache: 'pip'
+
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Embedding Script
+        env:
+          FAMILY_MART_KEY: ${{ secrets.FAMILY_MART_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: python -m embedding
 

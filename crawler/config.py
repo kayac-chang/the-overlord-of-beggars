@@ -6,6 +6,7 @@ class Settings(BaseSettings):
 
     DATABASE_URL: str
     FAMILY_MART_KEY: str
+    OPENAI_API_KEY: str
 
 
 settings = Settings()  # type: ignore
