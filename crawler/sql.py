@@ -50,3 +50,21 @@ SET
 ;
 """
 )
+
+upsert_stores_embeddings = sql.SQL(
+    """
+INSERT INTO stores_embeddings
+    (store_id, brand, embedding, raw_embedding)
+VALUES
+    (%(store_id)s, %(brand)s, %(embedding)s, %(raw_embedding)s)
+ON CONFLICT
+    (store_id, brand)
+DO UPDATE
+SET
+    store_id = EXCLUDED.store_id,
+    brand = EXCLUDED.brand,
+    embedding = EXCLUDED.embedding,
+    raw_embedding = EXCLUDED.raw_embedding
+;
+"""
+)
