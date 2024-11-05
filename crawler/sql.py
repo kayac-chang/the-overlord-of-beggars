@@ -27,7 +27,7 @@ CREATE EXTENSION IF NOT EXISTS vector;
 CREATE TABLE IF NOT EXISTS stores_embeddings (
     store_id VARCHAR(6) NOT NULL,
     brand VARCHAR(10) NOT NULL CHECK (brand IN ('7-11', 'FamilyMart')),
-    embedding VECTOR(512) NOT NULL,
+    embedding VECTOR(1536) NOT NULL,
     raw_embedding TEXT NOT NULL,
     FOREIGN KEY (store_id, brand) REFERENCES stores(store_id, brand) ON DELETE CASCADE,
     PRIMARY KEY (store_id, brand)
