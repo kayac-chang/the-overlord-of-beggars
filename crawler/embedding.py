@@ -64,7 +64,7 @@ async def main():
         res = await client.embeddings.create(
             input=raw_embeddings[i : i + batch_size],
             model="text-embedding-3-small",
-            dimensions=512,
+            dimensions=1536,
         )
         for row in res.data:
             stores[i + row.index]["embedding"] = row.embedding
