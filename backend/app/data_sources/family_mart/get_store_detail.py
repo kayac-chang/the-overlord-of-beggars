@@ -22,4 +22,9 @@ async def get_store_detail(store_id: str) -> Store | None:
 
             response_json = await response.json()
 
-            return Response[list[Store]].model_validate(response_json).data[0]
+            data = Response[list[Store]].model_validate(response_json).data
+
+            if not data or len(data) == 0:
+                return None
+
+            return data[0]

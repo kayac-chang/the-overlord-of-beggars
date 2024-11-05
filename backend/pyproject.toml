@@ -14,10 +14,14 @@ aiohttp = "^3.10.10"
 asyncache = "^0.3.1"
 pydantic-settings = "^2.6.0"
 xmltodict = "^0.14.2"
+psycopg = {extras = ["binary"], version = "^3.2.3"}
+pgvector = "^0.3.6"
+openai = "^1.53.0"
 
 [tool.poetry.group.dev.dependencies]
 types-xmltodict = "^0.14.0.20241009"
 types-cachetools = "^5.5.0.20240820"
+psycopg = "^3.2.3"
 
 
 [build-system]
