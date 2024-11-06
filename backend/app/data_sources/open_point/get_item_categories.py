@@ -1,6 +1,7 @@
 import aiohttp
+from pydantic import TypeAdapter
 
-from .model import ItemCategory, Response
+from .model import ErrorResponse, ItemCategory, SuccessResponse
 from .share import USER_AGENT
 
 
@@ -21,6 +22,11 @@ async def get_item_categories(token: str) -> list[ItemCategory]:
 
             response_json = await response.json()
 
-            res = Response[list[ItemCategory]].model_validate(response_json)
+            res = TypeAdapter(
+                SuccessResponse[list[ItemCategory]] | ErrorResponse
+            ).validate_python(response_json)
+
+            if not res.is_success:
+                return []
 
             return res.element

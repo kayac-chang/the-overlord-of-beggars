@@ -1,8 +1,9 @@
 import aiohttp
-from app.models.geolocation import GeoLocation
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, TypeAdapter
 
-from .model import Response
+from app.models.geolocation import GeoLocation
+
+from .model import ErrorResponse, SuccessResponse
 from .share import USER_AGENT
 
 
@@ -44,7 +45,7 @@ async def get_store_detail(
     token: str,
     store_id: str,
     current_location: GeoLocation = {"latitude": 0, "longitude": 0},
-) -> StoreDetailResponse:
+) -> StoreDetailResponse | None:
     """
     get store detail 取得門市庫存
 
@@ -69,6 +70,11 @@ async def get_store_detail(
 
             response_json = await response.json()
 
-            res = Response[StoreDetailResponse].model_validate(response_json)
+            res = TypeAdapter(
+                SuccessResponse[StoreDetailResponse] | ErrorResponse
+            ).validate_python(response_json)
+
+            if not res.is_success:
+                return None
 
             return res.element

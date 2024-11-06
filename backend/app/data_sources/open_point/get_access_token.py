@@ -1,6 +1,7 @@
 import aiohttp
+from pydantic import TypeAdapter
 
-from .model import Response
+from .model import ErrorResponse, SuccessResponse
 from .share import USER_AGENT
 
 
@@ -21,6 +22,11 @@ async def get_access_token(mid_v: str) -> str:
 
             response_json = await response.json()
 
-            res = Response[str].model_validate(response_json)
+            res = TypeAdapter(SuccessResponse[str] | ErrorResponse).validate_python(
+                response_json
+            )
+
+            if not res.is_success:
+                raise Exception(res.message)
 
             return res.element

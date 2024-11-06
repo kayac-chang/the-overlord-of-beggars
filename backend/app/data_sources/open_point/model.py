@@ -1,4 +1,4 @@
-from typing import Generic, TypeVar
+from typing import Generic, Literal, TypeVar
 
 from pydantic import BaseModel, Field
 
@@ -6,10 +6,14 @@ T = TypeVar("T")
 
 
 # general response model from open point
-class Response(BaseModel, Generic[T]):
+class SuccessResponse(BaseModel, Generic[T]):
     element: T
-    message: str | None
-    is_success: bool = Field(validation_alias="isSuccess")
+    is_success: Literal[True] = Field(validation_alias="isSuccess")
+
+
+class ErrorResponse(BaseModel, Generic[T]):
+    message: str
+    is_success: Literal[False] = Field(validation_alias="isSuccess")
 
 
 class Store(BaseModel):
