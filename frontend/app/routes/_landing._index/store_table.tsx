@@ -107,10 +107,6 @@ function BookmarkButton(props: Store) {
     (bookmark) => bookmark.storeid === props.id
   );
 
-  if (props.brand === "FamilyMart") {
-    return null;
-  }
-
   if (!hasBooked && data?.query.bookmarks?.length === 10) {
     return (
       <Tooltip delayDuration={300}>
