@@ -4,7 +4,7 @@
 #
 
 app = 'the-overload-of-beggars-api'
-primary_region = 'hkg'
+primary_region = 'nrt'
 
 [build]
 
