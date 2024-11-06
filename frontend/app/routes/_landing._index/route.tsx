@@ -60,7 +60,7 @@ export default function Index() {
             type="search"
             name="keyword"
             defaultValue={data?.query.keyword ?? ""}
-            placeholder="搜尋地址"
+            placeholder="搜尋 店名 / 地址"
             autoComplete="off"
           />
 
