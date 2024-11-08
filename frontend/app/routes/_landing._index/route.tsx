@@ -26,9 +26,9 @@ function LocateToggle() {
   if (pressed) {
     return (
       <Toggle
-        key={pressed ? "on" : "off"}
+        key="on"
         type="submit"
-        className="group"
+        className="group w-full h-full rounded-full md:rounded-md"
         defaultPressed={pressed}
       >
         <LocateFixed className="group-data-[state=off]:hidden" />
@@ -39,9 +39,9 @@ function LocateToggle() {
 
   return (
     <Toggle
-      key={pressed ? "on" : "off"}
+      key="off"
       type="submit"
-      className="group"
+      className="group w-full h-full rounded-full md:rounded-md"
       defaultPressed={pressed}
       name="location"
     >
@@ -53,7 +53,7 @@ function LocateToggle() {
 export default function Index() {
   const data = useLoaderData<typeof clientLoader>();
   return (
-    <div className="max-w-screen-lg mx-auto px-8 py-8">
+    <div className="max-w-screen-lg mx-auto px-8 pt-8 pb-32 md:pb-8">
       <div className="flex gap-4">
         <Form className="flex gap-4 flex-1">
           <Input
@@ -71,20 +71,27 @@ export default function Index() {
           )}
         </Form>
 
-        <Form>
-          <LocateToggle />
+        <div className="fixed bottom-4 right-4 z-10 flex flex-col gap-4 md:static md:flex-row">
+          <Form className="w-12 h-12 md:w-auto md:h-auto">
+            <LocateToggle />
 
-          {data?.query.keyword && (
-            <input type="hidden" name="keyword" value={data.query.keyword} />
-          )}
-        </Form>
+            {data?.query.keyword && (
+              <input type="hidden" name="keyword" value={data.query.keyword} />
+            )}
+          </Form>
 
-        <Button variant="secondary" asChild>
-          <Link to="/">
-            <Bookmark />
-            <span>已收藏 {data?.query.bookmarks.length ?? 0}</span>
-          </Link>
-        </Button>
+          <Button
+            variant="secondary"
+            className="w-12 h-12 rounded-full gap-1 md:w-auto md:h-auto md:rounded-md md:gap-2"
+            asChild
+          >
+            <Link to="/">
+              <Bookmark />
+              <span className="hidden md:inline">已收藏</span>
+              <span>{data?.query.bookmarks.length ?? 0}</span>
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {/* display the nearby stores and their near expired foods */}
