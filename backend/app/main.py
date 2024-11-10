@@ -44,8 +44,9 @@ Brand = Annotated[Brand, Path(description="品牌")]
 
 
 store_search_service = StoreSearchService(
-    openai_api_key=settings.OPENAI_API_KEY,
     db_url=settings.NEON_DB_URL,
+    search_engine_url=settings.MEILISEARCH_URL,
+    search_engine_master_key=settings.MEILI_MASTER_KEY,
 )
 
 stock_search_service = StockSearchService(

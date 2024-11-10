@@ -16,7 +16,7 @@ pydantic-settings = "^2.6.0"
 xmltodict = "^0.14.2"
 psycopg = {extras = ["binary"], version = "^3.2.3"}
 pgvector = "^0.3.6"
-openai = "^1.53.0"
+meilisearch-python-sdk = "^3.6.1"
 
 [tool.poetry.group.dev.dependencies]
 types-xmltodict = "^0.14.0.20241009"
