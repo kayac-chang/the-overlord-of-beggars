@@ -7,6 +7,8 @@ import {
   createColumnHelper,
 } from "@tanstack/react-table";
 import { ComponentProps, Fragment, ReactNode } from "react";
+import { LoaderCircle } from "lucide-react";
+import { match } from "ts-pattern";
 import {
   Table,
   TableBody,
@@ -15,18 +17,11 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "~/components/ui/tooltip";
+import { TooltipProvider } from "~/components/ui/tooltip";
 import { Toggle } from "~/components/ui/toggle";
 import { Store } from "~/models/store";
 import { clientLoader } from "./route";
-import { LoaderCircle, Bookmark, BookmarkCheck } from "lucide-react";
-import { match } from "ts-pattern";
-import { Button } from "~/components/ui/button";
+import { BookmarkButton } from "./bookmark";
 
 type ExpandButtonProps = {
   value: string;
@@ -97,55 +92,6 @@ function ExpandButton(props: ExpandButtonProps) {
           .map((store) => (
             <input key={store} type="hidden" name="stores" value={store} />
           ))}
-    </Form>
-  );
-}
-
-function BookmarkButton(props: Store) {
-  const data = useLoaderData<typeof clientLoader>();
-  const hasBooked = data?.query.bookmarks?.some(
-    (bookmark) => bookmark.storeid === props.id
-  );
-
-  if (!hasBooked && data?.query.bookmarks?.length === 10) {
-    return (
-      <Tooltip delayDuration={300}>
-        <Button
-          variant="outline"
-          size="icon"
-          disabled
-          className="!pointer-events-auto"
-          asChild
-        >
-          <TooltipTrigger>
-            <Bookmark />
-          </TooltipTrigger>
-        </Button>
-        <TooltipContent>
-          <p>關注上限 10 家</p>
-        </TooltipContent>
-      </Tooltip>
-    );
-  }
-
-  return (
-    <Form method="post" preventScrollReset>
-      <Toggle
-        type="submit"
-        className="group"
-        pressed={hasBooked}
-        name={hasBooked ? "unsubscribe" : "subscribe"}
-        value={props.id}
-      >
-        <span className="group-data-[state=on]:hidden">
-          <Bookmark className="size-4" />
-        </span>
-        <span className="group-data-[state=off]:hidden">
-          <BookmarkCheck className="size-4" />
-        </span>
-      </Toggle>
-
-      <input type="hidden" name="brand" value={props.brand} />
     </Form>
   );
 }
