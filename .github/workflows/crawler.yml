@@ -12,8 +12,8 @@ on:
           - seven_eleven
           - family_mart
           - all
-      run_embedding:
-        description: 'Run embedding job'
+      run_meilisearch_indexing:
+        description: 'Run Meilisearch indexing job'
         required: true
         default: false
         type: boolean
@@ -101,8 +101,8 @@ jobs:
       - name: Run Family Mart Crawler
         run: python -m family_mart.stores_crawler
 
-  embedding:
-    if: ${{ github.event.inputs.run_embedding }}
+  meilisearch_indexing:
+    if: ${{ github.event.inputs.run_meilisearch_indexing }}
     needs: [family_mart_crawler, seven_eleven_crawler]
     runs-on: ubuntu-latest
     defaults:
@@ -122,5 +122,4 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Run Embedding Script
-        run: python -m embedding
-
+        run: python -m meilisearch.indexing
