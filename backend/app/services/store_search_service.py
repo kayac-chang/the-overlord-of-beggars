@@ -1,5 +1,5 @@
 import psycopg
-from openai import AsyncClient
+from meilisearch_python_sdk import AsyncClient
 
 from app.models.brand import Brand
 from app.models.geolocation import GeoLocation
@@ -7,74 +7,73 @@ from app.models.store import Store
 
 
 class StoreSearchService:
-    def __init__(self, openai_api_key: str, db_url: str):
-        self.client = AsyncClient(api_key=openai_api_key)
+    def __init__(
+        self, db_url: str, search_engine_url: str, search_engine_master_key: str
+    ):
         self.db_url = db_url
+        self.search_engine_url = search_engine_url
+        self.search_engine_master_key = search_engine_master_key
 
     async def get_stores_by_keyword_and_location(
         self, keyword: str, location: GeoLocation, brands: set[Brand] | None
     ) -> list[Store]:
-        # generate embedding from keyword
-        res = await self.client.embeddings.create(
-            input=keyword, model="text-embedding-3-small", dimensions=1536
-        )
-        embedding = str(res.data[0].embedding)
+        async with AsyncClient(
+            self.search_engine_url, self.search_engine_master_key
+        ) as client:
+            res = await client.index("stores").search(
+                keyword,
+                show_ranking_score=True,
+                limit=50,
+                ranking_score_threshold=0.9,
+            )
 
-        # do similarity search with the embedding
-        search_distance = 1000
-        limit = 50
-        stores = []
-
+        stores: list[Store] = []
         async with await psycopg.AsyncConnection.connect(self.db_url) as conn:
             async with conn.cursor() as cur:
                 await cur.execute(
                     """
                     SELECT
-                        s.store_id,
-                        s.store_name,
-                        s.brand,
-                        s.address,
-                        ST_X(s.coordinates::geometry) as latitude,
-                        ST_Y(s.coordinates::geometry) as longitude,
-                        ST_Distance(s.coordinates, ST_MakePoint(%(longitude)s, %(latitude)s)) as distance,
-                        e.embedding <=> %(embedding)s as cosine_similarity
+                        store_id,
+                        store_name,
+                        brand,
+                        address,
+                        ST_X(coordinates::geometry) AS longitude,
+                        ST_Y(coordinates::geometry) AS latitude,
+                        ST_Distance(coordinates, ST_MakePoint(%(longitude)s, %(latitude)s)) as distance
                     FROM
-                        stores_embeddings e
-                    JOIN
-                        stores s
-                    ON
-                        e.store_id = s.store_id AND e.brand = s.brand
+                        stores
                     WHERE
-                        s.brand = ANY(%(brands)s)
+                        brand = ANY(%(brands)s)
                     AND
-                        ST_DWithin(s.coordinates, ST_MakePoint(%(longitude)s, %(latitude)s), %(search_distance)s)
-                    ORDER BY
-                        cosine_similarity
-                    LIMIT
-                        %(limit)s
+                        store_id = ANY(%(store_ids)s)
                     """,
                     {
-                        "embedding": embedding,
                         "brands": list(brands or ["7-11", "FamilyMart"]),
+                        "store_ids": [[hit["store_id"] for hit in res.hits]],
                         "longitude": location["longitude"],
                         "latitude": location["latitude"],
-                        "search_distance": search_distance,
-                        "limit": limit,
                     },
                 )
 
-                async for record in cur:
+                rows = await cur.fetchall()
+
+                for hit in res.hits:
+                    store_id = hit["store_id"]
+
+                    # Find the row with the matching store_id, maybe not found
+                    row = next((row for row in rows if row[0] == store_id), None)
+                    if not row:
+                        continue
+
                     (
                         store_id,
                         store_name,
                         brand,
                         address,
-                        latitude,
                         longitude,
+                        latitude,
                         distance,
-                        _,
-                    ) = record
-
+                    ) = row
                     stores.append(
                         Store(
                             id=store_id,
@@ -86,66 +85,59 @@ class StoreSearchService:
                             distance=distance,
                         )
                     )
-                await conn.commit()
 
+                await conn.commit()
         return stores
 
     async def get_stores_by_keyword(
         self, keyword: str, brands: set[Brand] | None
     ) -> list[Store]:
-        # generate embedding from keyword
-        res = await self.client.embeddings.create(
-            input=keyword, model="text-embedding-3-small", dimensions=1536
-        )
-        embedding = str(res.data[0].embedding)
+        async with AsyncClient(
+            self.search_engine_url, self.search_engine_master_key
+        ) as client:
+            res = await client.index("stores").search(
+                keyword,
+                show_ranking_score=True,
+                limit=50,
+                ranking_score_threshold=0.9,
+            )
 
-        # do similarity search with the embedding
-        limit = 50
-        stores = []
-
+        stores: list[Store] = []
         async with await psycopg.AsyncConnection.connect(self.db_url) as conn:
             async with conn.cursor() as cur:
                 await cur.execute(
                     """
                     SELECT
-                        s.store_id,
-                        s.store_name,
-                        s.brand,
-                        s.address,
-                        ST_X(s.coordinates::geometry) as latitude,
-                        ST_Y(s.coordinates::geometry) as longitude,
-                        e.embedding <=> %(embedding)s as cosine_similarity
-                    FROM
-                        stores_embeddings e
-                    JOIN
-                        stores s
-                    ON
-                        e.store_id = s.store_id AND e.brand = s.brand
-                    WHERE
-                        s.brand = ANY(%(brands)s)
-                    ORDER BY
-                        cosine_similarity
-                    LIMIT
-                        %(limit)s
-                    """,
-                    {
-                        "embedding": embedding,
-                        "brands": list(brands or ["7-11", "FamilyMart"]),
-                        "limit": limit,
-                    },
-                )
-
-                async for record in cur:
-                    (
                         store_id,
                         store_name,
                         brand,
                         address,
-                        latitude,
-                        longitude,
-                        _,
-                    ) = record
+                        ST_X(coordinates::geometry) AS longitude,
+                        ST_Y(coordinates::geometry) AS latitude
+                    FROM
+                        stores
+                    WHERE
+                        brand = ANY(%(brands)s)
+                    AND
+                        store_id = ANY(%(store_ids)s)
+                    """,
+                    {
+                        "brands": list(brands or ["7-11", "FamilyMart"]),
+                        "store_ids": [[hit["store_id"] for hit in res.hits]],
+                    },
+                )
 
+                rows = await cur.fetchall()
+
+                for hit in res.hits:
+                    store_id = hit["store_id"]
+
+                    # Find the row with the matching store_id, maybe not found
+                    row = next((row for row in rows if row[0] == store_id), None)
+                    if not row:
+                        continue
+
+                    (store_id, store_name, brand, address, longitude, latitude) = row
                     stores.append(
                         Store(
                             id=store_id,
@@ -156,6 +148,7 @@ class StoreSearchService:
                             longitude=longitude,
                         )
                     )
+
                 await conn.commit()
 
         return stores

@@ -6,7 +6,8 @@ class Settings(BaseSettings):
 
     OPEN_POINT_MID_V: str
     NEON_DB_URL: str
-    OPENAI_API_KEY: str
+    MEILISEARCH_URL: str
+    MEILI_MASTER_KEY: str
 
 
 settings = Settings()  # type: ignore
