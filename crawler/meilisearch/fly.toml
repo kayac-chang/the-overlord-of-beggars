@@ -1,0 +1,27 @@
+# fly.toml app configuration file generated for the-overload-of-beggars-search on 2024-11-08T23:24:00+08:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'the-overload-of-beggars-search'
+primary_region = 'nrt'
+
+[build]
+  image = 'getmeili/meilisearch'
+
+[[mounts]]
+  source = 'data'
+  destination = '/meili_data'
+
+[http_service]
+  internal_port = 7700
+  force_https = true
+  auto_stop_machines = 'stop'
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ['app']
+
+[[vm]]
+  memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 1
