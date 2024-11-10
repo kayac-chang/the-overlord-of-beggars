@@ -23,6 +23,8 @@ env:
   FAMILY_MART_KEY: ${{ secrets.FAMILY_MART_KEY }}
   DATABASE_URL: ${{ secrets.DATABASE_URL }}
   OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+  MEILISEARCH_URL: ${{ secrets.MEILISEARCH_URL }}
+  MEILI_MASTER_KEY: ${{ secrets.MEILI_MASTER_KEY }}
 
 jobs:
   initialize:
