@@ -45,6 +45,9 @@ async def main():
 
     client = meilisearch.Client(settings.MEILISEARCH_URL, settings.MEILI_MASTER_KEY)
 
+    task = client.delete_index("stores")
+    client.wait_for_task(task.task_uid)
+
     task = client.create_index("stores", {"primaryKey": "store_id"})
     client.wait_for_task(task.task_uid)
 
