@@ -9,4 +9,5 @@ export const ResponseSchema = <T extends z.ZodTypeAny>(schema: T) =>
 
 export const api = ky.extend({
   prefixUrl: env.BACKEND_API_URL,
+  timeout: false,
 });
