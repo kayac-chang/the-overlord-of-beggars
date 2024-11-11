@@ -2,12 +2,11 @@ import type { MetaFunction } from "@remix-run/node";
 import { Form, useLoaderData } from "@remix-run/react";
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
-import { Toggle } from "~/components/ui/toggle";
-import { LocateFixed, Locate } from "lucide-react";
 import { clientLoader } from "./client_loader";
 import StoreTable from "./store_table";
 import NearExpiredFoodTable from "./near_expired_food_table";
 import { BookmarkProvider, HasBookmarkedButton } from "./bookmark";
+import LocateToggle from "./locate_toggle";
 
 export { loader } from "./loader";
 export { clientLoader } from "./client_loader";
@@ -20,42 +19,11 @@ export const meta: MetaFunction = () => {
   ];
 };
 
-function LocateToggle() {
-  const data = useLoaderData<typeof clientLoader>();
-  const pressed = Boolean(data?.query.location);
-
-  if (pressed) {
-    return (
-      <Toggle
-        key="on"
-        type="submit"
-        className="group w-full h-full rounded-full md:rounded-md"
-        defaultPressed={pressed}
-      >
-        <LocateFixed className="group-data-[state=off]:hidden" />
-        <Locate className="group-data-[state=on]:hidden" />
-      </Toggle>
-    );
-  }
-
-  return (
-    <Toggle
-      key="off"
-      type="submit"
-      className="group w-full h-full rounded-full md:rounded-md"
-      defaultPressed={pressed}
-      name="location"
-    >
-      <Locate className="group-data-[state=on]:animate-blink" />
-    </Toggle>
-  );
-}
-
 export default function Index() {
   const data = useLoaderData<typeof clientLoader>();
   return (
-    <div className="max-w-screen-lg mx-auto px-8 pt-8 pb-32 md:pb-8">
-      <BookmarkProvider>
+    <BookmarkProvider>
+      <div className="max-w-screen-lg mx-auto px-4 md:px-8 pt-4 md:pt-8 pb-32 md:pb-8">
         <div className="flex gap-4">
           <Form className="flex gap-4 flex-1">
             <Input
@@ -96,7 +64,7 @@ export default function Index() {
 
         {/* display the nearby stores and their near expired foods */}
         <StoreTable
-          className="mt-4"
+          className="mt-8"
           data={data?.stores.filter((store) => store !== null) ?? []}
           expanded={data?.query.stores ?? undefined}
           renderSubComponent={(store) => {
@@ -108,7 +76,7 @@ export default function Index() {
             );
           }}
         />
-      </BookmarkProvider>
-    </div>
+      </div>
+    </BookmarkProvider>
   );
 }
