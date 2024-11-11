@@ -2,6 +2,7 @@ import { useLoaderData } from "@remix-run/react";
 import { Toggle } from "~/components/ui/toggle";
 import { LocateFixed, Locate } from "lucide-react";
 import { clientLoader } from "./client_loader";
+import { cn } from "~/lib/utils";
 
 function LocateToggle() {
   const data = useLoaderData<typeof clientLoader>();
@@ -12,7 +13,10 @@ function LocateToggle() {
       <Toggle
         key="on"
         type="submit"
-        className="group w-full h-full rounded-full md:rounded-md"
+        className={cn(
+          "group w-full h-full rounded-full md:rounded-md",
+          "data-[state=on]:bg-indigo-500"
+        )}
         defaultPressed={pressed}
       >
         <LocateFixed className="group-data-[state=off]:hidden" />
@@ -25,7 +29,7 @@ function LocateToggle() {
     <Toggle
       key="off"
       type="submit"
-      className="group w-full h-full rounded-full md:rounded-md"
+      className="group w-full h-full rounded-full md:rounded-md bg-secondary"
       defaultPressed={pressed}
       name="location"
     >

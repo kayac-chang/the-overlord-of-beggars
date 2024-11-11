@@ -10,6 +10,7 @@ import { clientLoader } from "./route";
 import { Bookmark, BookmarkCheck } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { createContext, useContext, useEffect, useState } from "react";
+import { cn } from "~/lib/utils";
 
 type Bookmark = {
   storeid: string;
@@ -147,8 +148,11 @@ export function HasBookmarkedButton() {
 
   return (
     <Button
-      variant="secondary"
-      className="w-12 h-12 rounded-full gap-1 md:w-auto md:h-auto md:rounded-md md:gap-2"
+      className={cn(
+        "w-12 h-12 rounded-full gap-1 md:w-auto md:h-auto md:rounded-md md:gap-2",
+        "!bg-amber-500 !text-primary-foreground"
+        //
+      )}
       asChild
     >
       <Link to="/">
