@@ -23,7 +23,7 @@ export default function Index() {
   const data = useLoaderData<typeof clientLoader>();
   return (
     <BookmarkProvider>
-      <div className="max-w-screen-lg mx-auto px-4 md:px-8 pt-4 md:pt-8 pb-32 md:pb-8">
+      <div className="max-w-screen-lg mx-auto px-4 md:px-8 pt-4 md:pt-8 md:pb-8">
         <div className="flex gap-4">
           <Form className="flex gap-4 flex-1">
             <Input
@@ -63,19 +63,20 @@ export default function Index() {
         </div>
 
         {/* display the nearby stores and their near expired foods */}
-        <StoreTable
-          className="mt-8"
-          data={data?.stores.filter((store) => store !== null) ?? []}
-          expanded={data?.query.stores ?? undefined}
-          renderSubComponent={(store) => {
-            const found = data?.storesWithNearExpiredFoods?.find(
-              (item) => item.storeid === store.id
-            );
-            return (
-              <NearExpiredFoodTable data={found?.nearExpiredFoods ?? []} />
-            );
-          }}
-        />
+        <div className="mt-8 overflow-auto max-h-[80vh]">
+          <StoreTable
+            data={data?.stores.filter((store) => store !== null) ?? []}
+            expanded={data?.query.stores ?? undefined}
+            renderSubComponent={(store) => {
+              const found = data?.storesWithNearExpiredFoods?.find(
+                (item) => item.storeid === store.id
+              );
+              return (
+                <NearExpiredFoodTable data={found?.nearExpiredFoods ?? []} />
+              );
+            }}
+          />
+        </div>
       </div>
     </BookmarkProvider>
   );
