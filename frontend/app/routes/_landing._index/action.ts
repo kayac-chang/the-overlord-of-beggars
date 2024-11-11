@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { zfd } from "zod-form-data";
 import { P, match } from "ts-pattern";
-import { replace } from "@remix-run/react";
+import { json } from "@remix-run/react";
 import BookmarkCookie from "./cookie";
 import { ActionFunctionArgs } from "@remix-run/node";
 
@@ -47,7 +47,7 @@ export async function action(args: ActionFunctionArgs) {
     )
     .otherwise(() => bookmarks);
 
-  return replace(args.request.url, {
+  return json(null, {
     headers: {
       "Set-Cookie": await BookmarkCookie.serialize(_bookmarks),
     },
