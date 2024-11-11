@@ -1,3 +1,8 @@
+from datetime import timedelta
+
+from asyncache import cached
+from cachetools import TTLCache
+
 from app.data_sources import family_mart, open_point
 from app.models.brand import Brand
 from app.models.stock import Stock
@@ -12,6 +17,10 @@ class StockSearchService:
 
         return bool(stocks)
 
+    @cached(
+        cache=TTLCache(maxsize=512, ttl=timedelta(minutes=5).total_seconds()),
+        key=lambda _, store_id, brand: f"{store_id}:{brand}",
+    )
     async def get_stocks_in_store(self, store_id: str, brand: Brand) -> list[Stock]:
 
         match brand:
