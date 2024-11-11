@@ -1,4 +1,6 @@
 import psycopg
+from asyncache import cached
+from cachetools import LRUCache
 from meilisearch_python_sdk import AsyncClient
 
 from app.models.brand import Brand
@@ -14,6 +16,10 @@ class StoreSearchService:
         self.search_engine_url = search_engine_url
         self.search_engine_master_key = search_engine_master_key
 
+    @cached(
+        cache=LRUCache(maxsize=1024),
+        key=lambda _, keyword, location, brands: f"{keyword}:{location['longitude']},{location['latitude']}:{brands}",
+    )
     async def get_stores_by_keyword_and_location(
         self, keyword: str, location: GeoLocation, brands: set[Brand] | None
     ) -> list[Store]:
@@ -89,6 +95,10 @@ class StoreSearchService:
                 await conn.commit()
         return stores
 
+    @cached(
+        cache=LRUCache(maxsize=1024),
+        key=lambda _, keyword, brands: f"{keyword}:{brands}",
+    )
     async def get_stores_by_keyword(
         self, keyword: str, brands: set[Brand] | None
     ) -> list[Store]:
@@ -153,6 +163,10 @@ class StoreSearchService:
 
         return stores
 
+    @cached(
+        cache=LRUCache(maxsize=1024),
+        key=lambda _, location, brands: f"{location["longitude"]},{location["latitude"]}:{brands}",
+    )
     async def get_stores_by_location(
         self, location: GeoLocation, brands: set[Brand] | None
     ) -> list[Store]:
@@ -220,6 +234,7 @@ class StoreSearchService:
 
         return stores
 
+    @cached(cache=LRUCache(maxsize=1024), key=lambda _, id, brand: f"{id}:{brand}")
     async def get_store_by_store_id(self, id: str, brand: Brand) -> Store | None:
 
         store = None
@@ -263,6 +278,10 @@ class StoreSearchService:
 
         return store
 
+    @cached(
+        cache=LRUCache(maxsize=1024),
+        key=lambda _, id, location, brand: f"{id}:{location['longitude']},{location['latitude']}:{brand}",
+    )
     async def get_store_by_store_id_and_location(
         self, id: str, location: GeoLocation, brand: Brand
     ) -> Store | None:
@@ -287,8 +306,6 @@ class StoreSearchService:
                         store_id = %(store_id)s
                     AND
                         brand = %(brand)s
-                    ORDER BY
-                        distance
                     """,
                     {
                         "store_id": id,
