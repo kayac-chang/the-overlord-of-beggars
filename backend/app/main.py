@@ -1,7 +1,9 @@
 import asyncio
+import logging
+import sys
 from typing import Annotated
 
-from fastapi import Depends, FastAPI, Path, Query
+from fastapi import BackgroundTasks, Depends, FastAPI, Path, Query
 from fastapi.exceptions import HTTPException
 from pydantic import TypeAdapter
 
@@ -14,6 +16,13 @@ from .models.response import Response
 from .models.stock import Stock
 from .models.store import Store
 from .services.store_search_service import StoreSearchService
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+stream_handler = logging.StreamHandler(sys.stdout)
+formatter = logging.Formatter("%(levelname)s:     %(message)s")
+stream_handler.setFormatter(formatter)
+logger.addHandler(stream_handler)
 
 app = FastAPI()
 
@@ -56,6 +65,7 @@ stock_search_service = StockSearchService(
 
 @app.get("/stores")
 async def get_stores(
+    background_tasks: BackgroundTasks,
     keyword: Keyword = None,
     brands: Brands = None,
     location: Location = None,
@@ -97,12 +107,23 @@ async def get_stores(
     has_stocks = await asyncio.gather(*tasks)
     res = [store for store, has_stock in zip(stores, has_stocks) if has_stock]
 
+    # 紀錄查詢結果
+    background_tasks.add_task(
+        logger.debug,
+        {
+            "request": {"keyword": keyword, "brands": brands, "location": location},
+            "response": [store.model_dump() for store in res],
+        },
+    )
+
     return Response(data=res)
 
 
 @app.get("/stores/{brand}/{store_id}")
 async def get_store(
-    store_id: StoreId, brand: Brand, location: Location = None
+    store_id: StoreId,
+    brand: Brand,
+    location: Location = None,
 ) -> Response[Store | None]:
     """
     店號查詢門市
