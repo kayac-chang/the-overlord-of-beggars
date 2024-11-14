@@ -7,7 +7,7 @@
 
 ## Contributing
 
-請聯繫 @kayac-chang
+請聯繫 [Kayac Hello](https://github.com/kayac-chang)
 
 - [email](mailto:egg734631+toob@gmail.com)
 - [discord](discordapp.com/users/487655664416587777)
