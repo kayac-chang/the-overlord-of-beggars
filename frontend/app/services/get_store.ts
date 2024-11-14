@@ -15,16 +15,16 @@ const InputSchema = z.object({
 
 type Input = z.infer<typeof InputSchema>;
 
-async function getStore(input: Input): Promise<Store> {
+async function getStore(input: Input, options?: RequestInit): Promise<Store> {
   return InputSchema.parseAsync(input)
     .then(({ brand, storeid, location }) => {
       if (location) {
         const search = new URLSearchParams({ location: toGeoString(location) });
 
-        return api.get(`stores/${brand}/${storeid}?${search}`).json();
+        return api.get(`stores/${brand}/${storeid}?${search}`, options).json();
       }
 
-      return api.get(`stores/${brand}/${storeid}`).json();
+      return api.get(`stores/${brand}/${storeid}`, options).json();
     })
     .then(ResponseSchema(StoreSchema).parseAsync)
     .then(({ data }) => data);

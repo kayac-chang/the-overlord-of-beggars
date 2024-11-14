@@ -2,6 +2,7 @@ import { z } from "zod";
 import pProps from "p-props";
 import { match, P } from "ts-pattern";
 import { LoaderFunctionArgs } from "@remix-run/node";
+import { getClientIPAddress } from "remix-utils/get-client-ip-address";
 import getStore from "~/services/get_store";
 import getNearExpiredFoodsByStoreId from "~/services/get_near_expired_foods_by_store_id";
 import searchStores from "~/services/search_stores";
@@ -28,6 +29,20 @@ export async function loader(args: LoaderFunctionArgs) {
     BookieCookie.deserialize(args.request),
   ]);
 
+  // Forward the user-agent and client IP address to the backend
+  const headers = new Headers();
+  if (args.request.headers.get("user-agent")) {
+    headers.set("user-agent", args.request.headers.get("user-agent")!);
+  }
+
+  const forwarded = Object.entries({
+    for: getClientIPAddress(args.request),
+  })
+    .filter(([_, value]) => Boolean(value))
+    .map(([key, value]) => `${key}=${value}`)
+    .join(";");
+  if (forwarded) headers.set("Forwarded", forwarded);
+
   return (
     match({ ...query, bookmarks })
       // 關鍵字 + 經緯度 搜尋附近的店家
@@ -47,13 +62,16 @@ export async function loader(args: LoaderFunctionArgs) {
           }
         ),
         (query) =>
-          searchStores({
-            keyword: query.keyword,
-            location: query.location
-              ? GeoLocation.deserialize(query.location)
-              : undefined,
-            brands: query.brands,
-          })
+          searchStores(
+            {
+              keyword: query.keyword,
+              location: query.location
+                ? GeoLocation.deserialize(query.location)
+                : undefined,
+              brands: query.brands,
+            },
+            { headers }
+          )
             //
             .then((stores) =>
               pProps({
@@ -64,7 +82,7 @@ export async function loader(args: LoaderFunctionArgs) {
                     .filter((store) => query.stores?.includes(store.id))
                     .map((store) => ({ storeid: store.id, brand: store.brand }))
                     .map((store) =>
-                      getNearExpiredFoodsByStoreId(store).then(
+                      getNearExpiredFoodsByStoreId(store, { headers }).then(
                         (nearExpiredFoods) => ({
                           ...store,
                           nearExpiredFoods,
@@ -84,13 +102,17 @@ export async function loader(args: LoaderFunctionArgs) {
         (query) =>
           pProps({
             query,
-            stores: Promise.all(query.bookmarks.map(getStore)).catch(() => []),
+
+            stores: Promise.all(
+              query.bookmarks.map((bookmark) => getStore(bookmark, { headers }))
+            ).catch(() => []),
+
             storesWithNearExpiredFoods: Promise.all(
               query.bookmarks
                 // only get near expired foods from stores that are bookmarked
                 .filter((bookmark) => query.stores?.includes(bookmark.storeid))
                 .map((bookmark) =>
-                  getNearExpiredFoodsByStoreId(bookmark).then(
+                  getNearExpiredFoodsByStoreId(bookmark, { headers }).then(
                     (nearExpiredFoods) => ({
                       storeid: bookmark.storeid,
                       nearExpiredFoods,
