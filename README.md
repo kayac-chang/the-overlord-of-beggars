@@ -2,44 +2,21 @@
 
 ![The Overload Of Beggars](./docs/hero.jpg)
 
-## Project Progress
+提供在台灣生活的小資族整合過的各種省錢資訊，
+像是：7-11 i珍食 + 全家友善時光。
 
-- [x] 專案基本建置
-- [x] 逆向資料來源
-    - [x] 7-11
-    - [x] family mart
+## Contributing
 
-- [x] python / fastapi backend 建置
-- [x] typescript / remix frontend 建置
+請聯繫 @kayac-chang
 
-- [x] 7-11 api 串接
-- [ ] family mart 串接
+- [email](mailto:egg734631+toob@gmail.com)
+- [discord](discordapp.com/users/487655664416587777)
 
-- [x] backend api 實作
-    - [x] GET /stores
-    - [x] GET /stores/:store_id/stocks
+## Contributors
 
-- [x] cache open_point / get_stores_by_address
-- [x] cache open_point / get_stores_by_geolocation
+<!-- readme: collaborators,contributors -start -->
+<!-- readme: collaborators,contributors -end -->
 
-- [ ] backend 將第三方資料備份到自家的資料庫
+## License
 
-- [x] frontend api 串接
-    - [x] search stores by geolocation
-    - [x] get nearly expired foods by store id
-- [x] frontend 取得用戶當前 geolocation
-- [x] frontend geoloaction 與頁面導向邏輯
-- [x] frontend UI
-    - [x] ProgressBar
-    - [x] StoreTable
-        - [x] NearlyExpiredFoodsTable
-    - [x] Search Input
-    - [x] Locate Toggle
-
-- [x] backend 部署
-- [x] frontend 部署
-
-
-
-- [ ] 訂閱功能
-    - [ ] backend 背景追蹤店家的即期品數量
+See the [LICENSE](./LICENSE) file for details.
