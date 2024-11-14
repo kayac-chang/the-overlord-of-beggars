@@ -1,9 +1,10 @@
 import asyncio
+import json
 import logging
 import sys
 from typing import Annotated
 
-from fastapi import BackgroundTasks, Depends, FastAPI, Path, Query
+from fastapi import BackgroundTasks, Depends, FastAPI, Path, Query, Request
 from fastapi.exceptions import HTTPException
 from pydantic import TypeAdapter
 
@@ -17,11 +18,9 @@ from .models.stock import Stock
 from .models.store import Store
 from .services.store_search_service import StoreSearchService
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 stream_handler = logging.StreamHandler(sys.stdout)
-formatter = logging.Formatter("%(levelname)s:     %(message)s")
-stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
 
 app = FastAPI()
@@ -65,6 +64,7 @@ stock_search_service = StockSearchService(
 
 @app.get("/stores")
 async def get_stores(
+    request: Request,
     background_tasks: BackgroundTasks,
     keyword: Keyword = None,
     brands: Brands = None,
@@ -109,11 +109,24 @@ async def get_stores(
 
     # 紀錄查詢結果
     background_tasks.add_task(
-        logger.debug,
-        {
-            "request": {"keyword": keyword, "brands": brands, "location": location},
-            "response": [store.model_dump() for store in res],
-        },
+        lambda: logger.info(
+            json.dumps(
+                {
+                    "req.method": request.method,
+                    "req.url.path": request.url.path,
+                    "req.query.keyword": keyword,
+                    "req.query.brands": brands,
+                    "req.query.location": location,
+                    "res.data": [store.model_dump() for store in res],
+                    # 記錄 request headers
+                    **{
+                        f"req.headers.{key}": value
+                        for key, value in request.headers.items()
+                    },
+                },
+                ensure_ascii=False,
+            )
+        ),
     )
 
     return Response(data=res)
