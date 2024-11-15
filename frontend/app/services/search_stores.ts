@@ -15,7 +15,10 @@ const InputSchema = z.object({
 
 type Input = z.infer<typeof InputSchema>;
 
-async function searchStores(input: Input): Promise<Store[]> {
+async function searchStores(
+  input: Input,
+  options?: RequestInit
+): Promise<Store[]> {
   return InputSchema.parseAsync(input)
     .then((input) => {
       const searchParams = new URLSearchParams();
@@ -30,7 +33,9 @@ async function searchStores(input: Input): Promise<Store[]> {
       }
       return searchParams;
     })
-    .then((searchParams) => api.get("stores", { searchParams }).json())
+    .then((searchParams) =>
+      api.get("stores", { ...options, searchParams }).json()
+    )
     .then(ResponseSchema(z.array(StoreSchema)).parseAsync)
     .then(({ data }) => data);
 }

@@ -13,11 +13,12 @@ const InputSchema = z.object({
 type Input = z.infer<typeof InputSchema>;
 
 async function getNearExpiredFoodsByStoreId(
-  input: Input
+  input: Input,
+  options?: RequestInit
 ): Promise<NearExpiredFood[]> {
   return InputSchema.parseAsync(input)
     .then(({ brand, storeid }) =>
-      api.get(`stores/${brand}/${storeid}/stock`).json()
+      api.get(`stores/${brand}/${storeid}/stock`, options).json()
     )
     .then(ResponseSchema(z.array(NearExpiredFoodSchema)).parseAsync)
     .then(({ data }) => data);
