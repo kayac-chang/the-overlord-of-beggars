@@ -16,6 +16,7 @@ export default function Progressbar() {
     <div
       role="progressbar"
       aria-hidden={loading ? "true" : "false"}
+      aria-label="載入中"
       className="fixed inset-x-0 left-0 top-0 z-50 h-1 animate-pulse"
     >
       <div

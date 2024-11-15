@@ -18,6 +18,7 @@ function LocateToggle() {
           "data-[state=on]:bg-indigo-500"
         )}
         defaultPressed={pressed}
+        aria-label="關閉定位"
       >
         <LocateFixed className="group-data-[state=off]:hidden" />
         <Locate className="group-data-[state=on]:hidden" />
@@ -32,6 +33,7 @@ function LocateToggle() {
       className="group w-full h-full rounded-full md:rounded-md bg-secondary"
       defaultPressed={pressed}
       name="location"
+      aria-label="開啟定位"
     >
       <Locate className="group-data-[state=on]:animate-blink" />
     </Toggle>
