@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS stores (
     store_name VARCHAR(50) NOT NULL,
     address VARCHAR(100) NOT NULL,
     coordinates GEOGRAPHY(Point) NOT NULL,
+    family_mart_services VARCHAR(255) NULL,
 
     -- only have 7-11 and FamilyMart
     brand VARCHAR(10) NOT NULL CHECK (brand IN ('7-11', 'FamilyMart')),
