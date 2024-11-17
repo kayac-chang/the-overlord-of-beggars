@@ -36,10 +36,3 @@ class FamilyMartService(str, Enum):
     MUSL = "musl"  # 穆斯林友善商品店舖
     NPORK = "npork"  # 無豬肉熱食友善店
     UNKNOW = "unknow"  # 未知
-
-    @classmethod
-    def from_str(cls, value: str) -> "FamilyMartService":
-        try:
-            return cls(value)
-        except ValueError:
-            return cls.UNKNOW
