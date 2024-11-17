@@ -72,15 +72,10 @@ function NearExpiredFoodTable({ data, ...props }: Props) {
   );
 
   return (
-    <div
-      className="-mt-32 pt-32"
-      ref={(ref) => ref?.scrollIntoView({ behavior: "smooth" })}
-    >
-      <Table {...props}>
-        {head}
-        {body}
-      </Table>
-    </div>
+    <Table {...props}>
+      {head}
+      {body}
+    </Table>
   );
 }
 
