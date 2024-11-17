@@ -7,6 +7,8 @@ import StoreTable from "./store_table";
 import NearExpiredFoodTable from "./near_expired_food_table";
 import { BookmarkProvider, HasBookmarkedButton } from "./bookmark";
 import LocateToggle from "./locate_toggle";
+import { TooltipProvider } from "~/components/ui/tooltip";
+import StoreList from "./store_list";
 
 export { loader } from "./loader";
 export { clientLoader } from "./client_loader";
@@ -63,20 +65,48 @@ export default function Index() {
         </div>
 
         {/* display the nearby stores and their near expired foods */}
-        <div className="mt-8 overflow-auto max-h-[80vh]">
-          <StoreTable
-            data={data?.stores.filter((store) => store !== null) ?? []}
-            expanded={data?.query.stores ?? undefined}
-            renderSubComponent={(store) => {
-              const found = data?.storesWithNearExpiredFoods?.find(
-                (item) => item.storeid === store.id
-              );
-              return (
-                <NearExpiredFoodTable data={found?.nearExpiredFoods ?? []} />
-              );
-            }}
-          />
-        </div>
+        <TooltipProvider>
+          <div className="mt-4 pt-4 overflow-auto max-h-[80vh]">
+            <div className="block md:hidden">
+              <StoreList
+                data={data?.stores.filter((store) => store !== null) ?? []}
+                expanded={data?.query.stores ?? undefined}
+                renderSubComponent={(store) => {
+                  const found = data?.storesWithNearExpiredFoods?.find(
+                    (item) => item.storeid === store.id
+                  );
+                  return (
+                    <NearExpiredFoodTable
+                      data={found?.nearExpiredFoods ?? []}
+                    />
+                  );
+                }}
+              />
+            </div>
+
+            <div className="hidden md:block">
+              <StoreTable
+                data={data?.stores.filter((store) => store !== null) ?? []}
+                expanded={data?.query.stores ?? undefined}
+                renderSubComponent={(store) => {
+                  const found = data?.storesWithNearExpiredFoods?.find(
+                    (item) => item.storeid === store.id
+                  );
+                  return (
+                    <div
+                      className="-mt-32 pt-32"
+                      ref={(ref) => ref?.scrollIntoView({ behavior: "smooth" })}
+                    >
+                      <NearExpiredFoodTable
+                        data={found?.nearExpiredFoods ?? []}
+                      />
+                    </div>
+                  );
+                }}
+              />
+            </div>
+          </div>
+        </TooltipProvider>
       </div>
     </BookmarkProvider>
   );
