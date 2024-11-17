@@ -20,13 +20,18 @@ class Store(pydantic.BaseModel):
     )
 
     @pydantic.field_validator("services", mode="before")
-    def parse_services(cls, value):
+    def parse_services(cls, value: str):
         """
         Parse family mart services
         """
-        if isinstance(value, list):
-            return [FamilyMartService(v) if isinstance(v, str) else v for v in value]
-        raise ValueError("services 必須是列表")
+        if not value:
+            return []
+
+        services: list[FamilyMartService] = []
+        for value in value.lower().split(","):
+            if value in FamilyMartService:
+                services.append(FamilyMartService(value))
+        return services
 
 
 async def get_stores_by_city_and_town(

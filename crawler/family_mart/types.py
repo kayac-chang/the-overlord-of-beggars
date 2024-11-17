@@ -2,7 +2,8 @@ from enum import Enum
 
 
 class FamilyMartService(str, Enum):
-    # FamilyMart 店內服務
+    """FamilyMart 店內服務"""
+
     LCOFFEE = "lcoffee"  # 咖啡複合店
     RPOTATO = "rpotato"  # 烤馬鈴薯
     HD = "hd"  # 哈逗堡

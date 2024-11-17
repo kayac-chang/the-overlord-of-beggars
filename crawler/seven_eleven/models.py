@@ -32,6 +32,9 @@ class Store(BaseModel):
     latitude: float = Field(validation_alias="Y", description="緯度")
     address: str = Field(validation_alias="Address", description="地址")
 
+    # @todo: support services in the future
+    services: list[str] = []
+
     @field_validator("longitude", "latitude")
     @classmethod
     def convert_to_float(cls, v: int) -> float:

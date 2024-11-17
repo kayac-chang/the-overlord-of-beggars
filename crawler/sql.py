@@ -42,15 +42,13 @@ CREATE TYPE services AS ENUM (
     'unknow'         -- 未知
 );
 
-C
-
 -- Create the stores table (if it does not already exist)
 CREATE TABLE IF NOT EXISTS stores (
     store_id VARCHAR(6) NOT NULL,
     store_name VARCHAR(50) NOT NULL,
     address VARCHAR(100) NOT NULL,
     coordinates GEOGRAPHY(Point) NOT NULL,
-    services services[] NOT NULL,  
+    services services[] NOT NULL,
 
     -- only have 7-11 and FamilyMart
     brand VARCHAR(10) NOT NULL CHECK (brand IN ('7-11', 'FamilyMart')),
@@ -78,15 +76,16 @@ CREATE TABLE IF NOT EXISTS stores_embeddings (
 upsert_stores = sql.SQL(
     """
 INSERT INTO stores
-    (store_id, store_name, address, coordinates, brand)
+    (store_id, store_name, address, coordinates, brand, services)
 VALUES
-    (%(store_id)s, %(store_name)s, %(address)s, ST_SetSRID(ST_MakePoint(%(longitude)s, %(latitude)s), 4326), %(brand)s)
+    (%(store_id)s, %(store_name)s, %(address)s, ST_SetSRID(ST_MakePoint(%(longitude)s, %(latitude)s), 4326), %(brand)s, %(services)s)
 ON CONFLICT
     (store_id, brand) DO UPDATE
 SET
     store_name = EXCLUDED.store_name,
     address = EXCLUDED.address,
-    coordinates = EXCLUDED.coordinates
+    coordinates = EXCLUDED.coordinates,
+    services = EXCLUDED.services
 ;
 """
 )
