@@ -1,9 +1,10 @@
 import aiohttp
 import psycopg
+from tqdm import tqdm
+
 from config import settings
 from list_of_city import list_of_city
-from sql import init_sql, upsert_stores
-from tqdm import tqdm
+from sql import upsert_stores
 
 from .get_stores_by_city_and_town import Store, get_stores_by_city_and_town
 from .get_towns_by_city import Town, get_towns_by_city

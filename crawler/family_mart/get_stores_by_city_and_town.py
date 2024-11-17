@@ -4,6 +4,8 @@ import re
 import aiohttp
 import pydantic
 
+from .types import FamilyMartService
+
 
 class Store(pydantic.BaseModel):
     store_name: str = pydantic.Field(validation_alias="NAME", description="門市名稱")
@@ -13,6 +15,23 @@ class Store(pydantic.BaseModel):
     store_id: str = pydantic.Field(validation_alias="oldpkey", description="門市編號")
     post: str = pydantic.Field(validation_alias="post", description="郵遞區號")
     road: str = pydantic.Field(validation_alias="road", description="道路名稱")
+    services: list[FamilyMartService] = pydantic.Field(
+        validation_alias="all", description="全家便利商店提供服務"
+    )
+
+    @pydantic.field_validator("services", mode="before")
+    def parse_services(cls, value: str):
+        """
+        Parse family mart services
+        """
+        if not value:
+            return []
+
+        services: list[FamilyMartService] = []
+        for value in value.lower().split(","):
+            if value in FamilyMartService:
+                services.append(FamilyMartService(value))
+        return services
 
 
 async def get_stores_by_city_and_town(

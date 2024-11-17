@@ -81,3 +81,38 @@ showStoreList = {
 }[]
 ```
 
+## 店家服務
+
+lcoffeey: 咖啡複合店
+rpotatoy: 烤馬鈴薯
+hdy: 哈逗堡
+smarty: 智能咖啡機
+teay: 福爾摩沙茶館
+sweetpotatoy: 夯番薯
+photoy: 相片立可得
+csy: ChargeSPOT
+goroy: gogoro電池交換站
+icey: Fami!ce(有販售店)
+icecreamy: Fami!ce(單口味店)
+twoicey: Fami!ce(雙口味店)
+famiicey: Fami!ce(特殊造型店)
+cardy: Picard (法國優質冷凍食品)
+supery: 全家FamiSuper選品超市店
+tanhouy: 天和鮮物
+resty: 休憩區
+toilety: 廁所
+vegy: 生鮮蔬菜
+laundryy: Fami自助洗衣
+desserty: SOHOT炎選-現烤點心
+costcoy: 好市多專區
+haday: 哈根達斯冰箱
+tripky: 鼎王麻辣蛋
+freshy: 蒸新鮮
+ecoy: 塑環真®循環杯
+grilly: SOHOT炎選-炸烤物
+cooknowy: 馬尚煮
+hogany: 哈肯舖
+beary: 小熊菓子
+musly: 穆斯林友善商品店舖
+nporky: 無豬肉熱食友善店
+unknow: 未知
