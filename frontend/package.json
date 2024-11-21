@@ -5,9 +5,9 @@
   "type": "module",
   "scripts": {
     "build": "remix vite:build",
-    "dev": "remix vite:dev",
+    "dev": "tsx ./server/index.ts",
     "lint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
-    "start": "remix-serve ./build/server/index.js",
+    "start": "cross-env NODE_ENV=production tsx ./server",
     "typecheck": "tsc"
   },
   "dependencies": {
@@ -24,10 +24,14 @@
     "@tanstack/react-table": "^8.20.5",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
+    "compression": "^1.7.5",
+    "express": "^4.21.1",
+    "helmet": "^8.0.0",
     "is-ip": "^5.0.1",
     "isbot": "^4.1.0",
     "ky": "^1.7.2",
     "lucide-react": "^0.453.0",
+    "morgan": "^1.10.0",
     "p-props": "^6.0.0",
     "ramda": "^0.30.1",
     "react": "^18.2.0",
@@ -36,6 +40,7 @@
     "tailwind-merge": "^2.5.4",
     "tailwindcss-animate": "^1.0.7",
     "ts-pattern": "^5.5.0",
+    "tsx": "^4.19.2",
     "vaul": "^1.1.1",
     "zod": "^3.23.8",
     "zod-form-data": "^2.0.2"
@@ -43,6 +48,9 @@
   "devDependencies": {
     "@flydotio/dockerfile": "^0.5.9",
     "@remix-run/dev": "^2.13.1",
+    "@types/compression": "^1.7.5",
+    "@types/express": "^5.0.0",
+    "@types/morgan": "^1.9.9",
     "@types/ramda": "^0.30.2",
     "@types/react": "^18.2.20",
     "@types/react-dom": "^18.2.7",

@@ -5,9 +5,11 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useLoaderData,
 } from "@remix-run/react";
 
 import "./tailwind.css";
+import { LoaderFunctionArgs } from "@remix-run/node";
 
 export const meta: MetaFunction = () => {
   return [
@@ -51,7 +53,14 @@ export const meta: MetaFunction = () => {
   ];
 };
 
+export function loader({ context }: LoaderFunctionArgs) {
+  return {
+    nonce: context.cspNonce as string,
+  };
+}
+
 export function Layout({ children }: { children: React.ReactNode }) {
+  const data = useLoaderData<typeof loader>();
   return (
     <html
       lang="zh-TW"
@@ -66,8 +75,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </head>
       <body className="min-h-screen">
         {children}
-        <ScrollRestoration />
-        <Scripts />
+        <Scripts nonce={data.nonce} />
+        <ScrollRestoration nonce={data.nonce} />
       </body>
     </html>
   );
