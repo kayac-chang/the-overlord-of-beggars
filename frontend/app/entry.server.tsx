@@ -128,6 +128,10 @@ function handleBrowserRequest(
             "Strict-Transport-Security",
             `max-age=${60 * 60 * 24 * 365 * 2}; includeSubDomains; preload`
           );
+          responseHeaders.set(
+            "Permissions-Policy",
+            "geolocation=(self), web-share=(self)"
+          );
 
           resolve(
             new Response(stream, {
