@@ -25,7 +25,7 @@ export const links: LinksFunction = () => [
 
 export const meta: MetaFunction = () => {
   return [
-    { title: "The Overload Of Beggars 乞丐超人" },
+    { title: "The Overlord Of Beggars 乞丐超人" },
     {
       property: "description",
       content:
